@@ -1,3 +1,46 @@
+base_agent:
+  components:
+  - name: Instructions
+    pre_act_key: '## ROLE-PLAYING INSTRUCTIONS
+
+      '
+    seq_index: 0
+  - name: OverarchingGoal
+    pre_act_key: '## OVERARCHING GOAL
+
+      '
+    seq_index: 1
+  - name: Observation
+    pre_act_key: '## OBSERVATIONS
+
+      '
+    seq_index: 2
+  - name: TimeDisplay
+    pre_act_key: '## CURRENT DATE AND TIME
+
+      '
+    seq_index: 3
+  - name: IdentityWithoutPreAct
+    pre_act_key: '## IDENTITY CHARACTERISTICS
+
+      '
+    seq_index: 4
+  - name: SelfPerception
+    pre_act_key: '## SELF-PERCEPTION
+
+      '
+    seq_index: 5
+  - name: ActionSuggester
+    pre_act_key: '## ACTION SUGGESTION
+
+      '
+    seq_index: 6
+  dependencies:
+    AllSimilarMemories:
+      ObservationSummary: SUMMARY OF RECENT OBSERVATIONS
+      TimeDisplay: Current date and time is
+    SelfPerception:
+      IdentityWithoutPreAct: IDENTITY CHARACTERISTICS
 directory:
 - context: Jessica frequently engaged with politically charged content, showing a
     preference for conservative narratives and a critical stance towards liberal figures.

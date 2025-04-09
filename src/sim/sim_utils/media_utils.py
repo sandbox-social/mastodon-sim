@@ -49,7 +49,7 @@ class GptLanguageModel(language_model.LanguageModel):
     def _log(self, prompt: str, output: str):  ## Function for logging
         agent_name = "not found"
         for test_agent_name in self.agent_names:
-            if test_agent_name in prompt[:150]:
+            if test_agent_name in prompt[:110]:
                 agent_name = test_agent_name
         self.meta_data["agent_name"] = agent_name
         log_entry = {"prompt": prompt, "output": output} | self.meta_data

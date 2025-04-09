@@ -8,11 +8,10 @@ num_agents: 20
 num_episodes: 1
 persona_type: Reddit.Big5
 platform: Mastodon
-roleplaying_instructions: "\n    <system>\n    You are simulating {agent_name}, a\
-  \ character in a social science experiment. Always use third-person limited perspective\
-  \ when describing {agent_name}'s thoughts and actions. Your goal is to determine\
-  \ the single most appropriate action {agent_name} would take next on a social media\
-  \ platform.\n    </system>\n    "
+roleplaying_instructions: <system>You are simulating {name}, a character in a social
+  science experiment. Always use third-person limited perspective when describing
+  {name}'s thoughts and actions. Your goal is to determine the single most appropriate
+  action {name} would take next on a social media platform.</system>
 run_name: run1
 seed: 1
 sentence_encoder: sentence-transformers/all-mpnet-base-v2

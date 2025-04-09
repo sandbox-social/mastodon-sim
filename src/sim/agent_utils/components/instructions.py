@@ -17,7 +17,7 @@
 from concordia.components.agent import constant
 from concordia.typing import logging
 
-from sim.sim_utils.misc_sim_utils import ConfigStore
+# from sim.sim_utils.misc_sim_utils import ConfigStore
 
 DEFAULT_INSTRUCTIONS_PRE_ACT_KEY = "Role playing instructions"
 
@@ -28,11 +28,12 @@ class Instructions(constant.Constant):
     def __init__(
         self,
         agent_name: str,
+        state: str,
         pre_act_key: str = DEFAULT_INSTRUCTIONS_PRE_ACT_KEY,
         logging_channel: logging.LoggingChannel = logging.NoOpLoggingChannel,
     ):
-        cfg = ConfigStore.get_config()
-        state = cfg.sim.roleplaying_instructions
+        # cfg = ConfigStore.get_config()
+        # state = cfg.sim.roleplaying_instructions
         # state = (
         #     f'The instructions for how to play the role of {agent_name} are as '
         #     'follows. This is a social science experiment studying how well you '

@@ -16,14 +16,6 @@
 
 import re
 import threading
-
-# _PHONE_CALL_TO_ACTION = textwrap.dedent("""\
-#   What action is {name} currently performing or has just performed
-#   with their smartphone to best achieve their goal?
-#   Consider their plan, but deviate if necessary.
-#   Give a specific activity using one app. For example:
-#   {name} uses/used the Chat app to send "hi, what's up?" to George.
-#   """)
 from html import unescape
 from typing import Literal
 
@@ -146,8 +138,11 @@ class _PhoneComponent(component.Component):
     def terminate_episode(self) -> bool:
         chain_of_thought = interactive_document.InteractiveDocument(self._model)
         chain_of_thought.statement(
-            f"Assess {self._player.name}'s interactions with phone so far:\n"
-            + "\n- ".join(self._state)
+            f"Assess {self._player.name}'s interactions with phone so far:\n - "
+            + "\n - ".join(
+                [statement[9:] for statement in self._state if statement[:7] == "SUCCESS"]
+            )
+            + "\n"
         )
         did_conclude = chain_of_thought.yes_no_question(
             "Is any of the following statements likely true:"
@@ -213,7 +208,7 @@ class _PhoneComponent(component.Component):
                     print(media_desc)
                 output_now += f"User: {post['account']['display_name']} (@{post['account']['username']})\nContent: {_clean_html(post['content'])}\n{media_desc}\nToot ID: {post['id']}"
 
-            self._state.append(f"- {self._player.name} retrieved their timeline")
+            self._state.append(f"SUCCESS: {self._player.name} retrieved their timeline")
             self._player.observe(f"[Action done on phone]: Retrieved timeline: \n{output_now}")
             return [f"[Action done on phone]: Retrieved timeline: \n{output_now}"]
 
@@ -225,13 +220,23 @@ class _PhoneComponent(component.Component):
         # print(check_post)
         # if check_post:
         check_dup = chain_of_thought.yes_no_question(
-            f"Would {self._player.name} see this action as essentially acheiving the same thing as an action in the following list describing previously taken actions? (Answer No if the list is empty.): \nPrevious actions:\n"
-            + "\n- ".join(self._state)
+            f"Would {self._player.name} see this action as essentially achieving the same thing as any of their previously taken action? \nPrevious actions (Answer No if the list is empty):\n- "
+            + "\n- ".join(
+                [statement[9:] for statement in self._state if statement[:7] == "SUCCESS"]
+            )
         )
+        event_statement_concise_obj = re.search(
+            re.escape("FINAL DECISION:") + "(.*)", event_statement, re.DOTALL
+        )
+        event_statement_concise = (
+            event_statement_concise_obj.group(1) if event_statement_concise_obj else event_statement
+        )
+
         # print(check_dup)
         if check_dup:
             self._state.append(
-                "- (attempt failed: duplicated a previously taken action)" + event_statement.strip()
+                "FAILED (duplicated a previously taken action): "
+                + event_statement_concise.replace("\n", " ")
             )
             self._player.observe(
                 f"[Action done on phone]: The following phone action was not conducted because it has already been taken - {event_statement}"
@@ -240,7 +245,7 @@ class _PhoneComponent(component.Component):
                 f"[Action done on phone]: The following phone action was not conducted because it has already been taken - {event_statement}"
             ]
 
-        self._state.append("(attempt successful)" + event_statement.strip())
+        self._state.append("SUCCESS: " + event_statement_concise.replace("\n", " "))
         action_names = [a.name for a in app.actions()]
         chain_of_thought.statement(app.description())
         action_index = chain_of_thought.multiple_choice_question(
@@ -270,7 +275,7 @@ class _PhoneComponent(component.Component):
 
             def _clean_html(html_string):
                 clean_text = re.sub("<[^<]+?>", "", unescape(html_string))
-                return re.sub(r"\s+", " ", clean_text).strip()
+                return re.sub(r"\s+", " ", clean_text)  # .strip()
 
             output = []
             for post in timeline:

@@ -7,7 +7,7 @@ import json
 EPISODE_CALL_TO_ACTION = """
 {name} has decided to open the Storhampton.social Mastodon app to engage with other Storhampton residents on the platform for the next {timedelta}, starting by checking their home timeline.
 
-Describe the motivation that will drive {name}'s attention during this activity and the actions they are likely to take on the app during this period as a result.
+Describe the motivation that will drive {name}'s attention during this activity and the kinds of actions they are likely to take on the app during this period as a result.
 For example: Are they looking to be entertained? Are they curious about what others are posting?
 Do they simply want to post something that's been on their mind?
 
@@ -31,11 +31,12 @@ Here's an example description for a hypothetical Storhampton resident, specifica
 
 "Sarah has been anxious about the election and decides she wants to go on Storhampton.social to make a post about issues she wants the community to think about as they vote.
 In particular, she will post the following toot reflecting what she has observed in light of her interests:
-'Has anyone heard anything from the candidates about teaching technology to kids in our community?
-I just think this is such an important issue for us. The next generation of Storhamptons needs employable skills!
-Curious what others think. 🤔
-#StorhamptonElection #STEM'".
+'Has anyone heard anything from the candidates about teaching technology to kids in our community? I just think this is such an important issue for us. The next generation of Storhamptons needs employable skills!
+Curious what others think. 🤔 #StorhamptonElection #STEM.'
+After posting Sarah will view her timeline, liking and boosting posts, and even replying to posts that engage her interests in the election and her passions".
 """
+
+
 # """
 # # EMILY CHEN ROLE-PLAYING SIMULATION
 
@@ -107,35 +108,66 @@ Curious what others think. 🤔
 # action instructions
 CALL_TO_ACTION = """
 ## Available Actions
-1. Post a toot
-2. Reply to a toot (requires Toot ID)
-3. Boost a toot (requires Toot ID + content)
-4. Like a toot (requires Toot ID)
+1. POST - Create a new toot
+2. REPLY - Respond to existing toot (needs ID)
+3. BOOST - Share someone's toot (needs ID)
+4. LIKE - Like a toot (needs ID)
 
-## Core Rules
-- Never repeat the exact same action
-- Provide specific details
-- Use only already mentioned details/do not make them up (valid examples: Toot IDs obtained from the read timeline; users mentioned in observations)
-- Follow the suggested action unless responding to engagement by other users
-- Base actions on character's values and goals
-- Use direct replies for responses, not new posts
+## INSTRUCTIONS
 
-## Primary Question and Instructions
-Based on {name}'s goal, the content of the current plan for phone usage, tagged as [Planned Actions for upcoming Phone Usage], as well as list of actions already taken in this episode, what SINGLE specific action would they take now on the storhampton.social Mastodon app?
+Determine what ONE action {name} would take next based on:
 
-Think through:
-1. Current motivation and context
-2. Available (i.e. not repeated) actions and their impact
-3. Alignment with character values
-4. Specific details needed (IDs, content)
+- Their character and values
+- The current context and timeline
+- Without repeating recent actions
+- Acting authentically to their character
 
-Provide your response with:
-1. Motivation/explanation
-2. Specific action details
-3. Required context/content
+## OUTPUT FORMAT
+STEP 1: [Analyze {name}'s motivation based on their character]
+STEP 2: [Consider which posts/actions align with {name}'s values]
+STEP 3: [Determine the single most authentic action]
 
-List of actions already taken in this episode (tagged as [Action done on phone]) so as not to repeat:
+FINAL DECISION:
+ACTION TYPE: [POST/REPLY/BOOST/LIKE]
+TARGET ID: [Include toot ID if applicable]
+CONTENT: [For posts/replies, exact text {name} would write]
+REASONING: [Brief explanation of why this action fits {name}'s character]
+
+## EXAMPLE OUTPUT
+STEP 1: {name} is motivated by her interest in educational initiatives and community engagement around the election.
+STEP 2: Chris's post about community priorities resonates with {name}'s values. She hasn't interacted with this post yet.
+STEP 3: Responding to Chris would allow {name} to engage meaningfully about community values.
+
+FINAL DECISION:
+ACTION TYPE: REPLY
+TARGET ID: 114204813429886778
+CONTENT: "I appreciate your focus on community priorities, Chris! As an educator, I believe our growth depends on strong educational foundations alongside economic development."
+REASONING: This reply allows Emily to acknowledge community values while highlighting her educational perspective, which is authentic to her character.
 """
+# ## Core Rules
+# - Never repeat the exact same action
+# - Provide specific details
+# - Use only already mentioned details/do not make them up (valid examples: Toot IDs obtained from the read timeline; users mentioned in observations)
+# - Follow the suggested action unless responding to engagement by other users
+# - Base actions on character's values and goals
+# - Use direct replies for responses, not new posts
+
+# ## Primary Question and Instructions
+# Based on {name}'s goal, the content of the current plan for phone usage, tagged as [Planned Actions for upcoming Phone Usage], as well as list of actions already taken in this episode, what SINGLE specific action would they take now on the storhampton.social Mastodon app?
+
+# Think through:
+# 1. Current motivation and context
+# 2. Available (i.e. not repeated) actions and their impact
+# 3. Alignment with character values
+# 4. Specific details needed (IDs, content)
+
+# Provide your response with:
+# 1. Motivation/explanation
+# 2. Specific action details
+# 3. Required context/content
+
+# List of actions already taken in this episode (tagged as [Action done on phone]) so as not to repeat:
+# """
 
 SETTING_BACKGROUND = [
     "Storhampton is a small town with a population of approximately 2,500 people.",
@@ -308,6 +340,64 @@ def generate_output_configs(cfg):
     agents["inputs"] = {}
     agents["inputs"]["persona_file"] = "reddit_agents.json"
     agents["inputs"]["news_file"] = "v1_news_no_bias"
+    agents["base_agent"] = {}
+    agents["base_agent"]["components"] = [
+        {
+            "name": "Instructions",
+            "pre_act_key": "## ROLE-PLAYING INSTRUCTIONS\n",
+            # "seq_index": 0
+        },  # cls._get_component_name()=Instructions
+        {
+            "name": "OverarchingGoal",
+            "pre_act_key": "## OVERARCHING GOAL\n",
+            # "seq_index": 1
+        },  # cls._get_component_name()=Constant
+        {
+            "name": "Observation",
+            "pre_act_key": "## OBSERVATIONS\n",
+            "seq_index": 2,
+        },  # cls._get_component_name()=Observation
+        # {
+        #     "name": "ObservationSummary",
+        #     "pre_act_key": "## SUMMARY OF RECENT OBSERVATIONS\n",
+        #     "seq_index": 3
+        # },# cls._get_component_name()=ObservationSummary
+        {
+            "name": "TimeDisplay",
+            "pre_act_key": "## CURRENT DATE AND TIME\n",
+            # "seq_index": 4
+        },  #  cls._get_component_name()=ReportFunction
+        # {
+        #     "name": "AllSimilarMemories",
+        #     "pre_act_key": "## RECALLED MEMORIES AND OBSERVATIONS\n",
+        #     "seq_index": 5
+        # },# cls._get_component_name()=AllSimilarMemories,
+        {
+            "name": "IdentityWithoutPreAct",
+            "pre_act_key": "## IDENTITY CHARACTERISTICS\n",
+            # "seq_index": 6
+        },  # cls._get_component_name()=IdentityWithoutPreAct, # does not provide pre-act context
+        {
+            "name": "SelfPerception",
+            "pre_act_key": "## SELF-PERCEPTION\n",
+            # "seq_index": 7
+        },  # cls._get_component_name()=SelfPerception
+        {
+            "name": "ActionSuggester",
+            "pre_act_key": "## ACTION SUGGESTION\n",
+            # "seq_index": 8
+        },  # cls._get_component_name()=ActionSuggester
+    ]
+    for it, comp_dict in enumerate(agents["base_agent"]["components"]):
+        comp_dict["seq_index"] = it
+
+    agents["base_agent"]["dependencies"] = {
+        "AllSimilarMemories": {
+            "ObservationSummary": "SUMMARY OF RECENT OBSERVATIONS",
+            "TimeDisplay": "Current date and time is",
+        },
+        "SelfPerception": {"IdentityWithoutPreAct": "IDENTITY CHARACTERISTICS"},
+    }
     agents["directory"] = []
     # Bring agents together for base setting by role
     roles = []

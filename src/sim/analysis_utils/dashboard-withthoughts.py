@@ -171,7 +171,7 @@ def create_display_plan(entry_plan, entry_acts):
                 [
                     html.Div(
                         [
-                            html.Span(convert_linebreaks("\n- ".join(entry_acts))),
+                            html.Span(convert_linebreaks("\n- " + "\n- ".join(entry_acts))),
                         ],
                         style={"backgroundColor": "#e8f0fe", "padding": "5px", "margin": "5px"},
                     ),
@@ -384,6 +384,7 @@ def load_data(input_var):
     plan_dict = get_plan_dict(plan_df.copy())
 
     # inner action data
+    # act_df['episode'] = act_df['episode'].apply(lambda x: str(x))
     act_dict = get_act_dict(act_df.copy())
 
     return (
@@ -1208,7 +1209,7 @@ if __name__ == "__main__":
             return None
         if not data:
             print("PLan Contents is empty")
-
+        print(data["act_data"].keys())
         plan_data = data["plan_data"][str(selected_episode)]
         act_data = data["act_data"][str(selected_episode)]
         try:
