@@ -152,12 +152,8 @@ class _PhoneComponent(component.Component):
         return did_conclude
 
     def update_after_event(self, event_statement: str):
-        # print(f"Player state:\n{self._player.state()}")
-        # TODO: May want to add player state to the transcript
-
         print("Inside phone_update_after_event")
         print("event statement: " + event_statement)
-        # print("Self state:" + "\n- ".join(self._state))
         assert isinstance(self._phone.apps[0], apps.MastodonSocialNetworkApp)
         app = self._phone.apps[0]
 
@@ -173,7 +169,6 @@ class _PhoneComponent(component.Component):
             for post in timeline:
                 media_desc = ""
                 if post["media_attachments"]:
-                    # media_lm = gpt_model.GptLanguageModel(model="gpt-4o-mini")
                     media_contents = []
                     for attachment in post["media_attachments"]:
                         media_contents.append(attachment["url"])
@@ -194,7 +189,6 @@ class _PhoneComponent(component.Component):
                             tag="media",
                         )
                     )
-                    # media_desc = media_lm.sample_text(prompt = call_to_action)
                     media_desc = (
                         media_desc.strip(self._player.name.split()[0])
                         .strip()

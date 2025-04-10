@@ -1,6 +1,6 @@
 call_to_action: '
 
-  ## Available Actions
+  ## AVAILABLE ACTIONS
 
   1. POST - Create a new toot
 
@@ -13,9 +13,7 @@ call_to_action: '
 
   ## INSTRUCTIONS
 
-
   Determine what ONE action {name} would take next based on:
-
 
   - Their character and values
 
@@ -155,7 +153,7 @@ setting_info:
       active_rates_per_episode:
         candidate: 0.7
         exogenous: 1
-        voter: 0.5
+        voter: 0.8
       initial_follow_prob:
         candidate:
           candidate: 0.4

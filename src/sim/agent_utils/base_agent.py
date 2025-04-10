@@ -3,6 +3,7 @@ import datetime
 import importlib
 import json
 import random
+import re
 from collections.abc import Callable, Sequence
 from decimal import ROUND_HALF_UP, Decimal
 from inspect import signature
@@ -85,7 +86,6 @@ class AllActComponent(entity_component.ActingComponent):
             sorted(set(contexts.keys()) - set(self._component_order))
         )
         return "\n\n".join(contexts[name] for name in order if contexts.get(name, False))
-        # return "\n".join(contexts[name] for name in order if contexts[name])
 
     def get_action_attempt(
         self,
@@ -106,16 +106,13 @@ class AllActComponent(entity_component.ActingComponent):
         if action_spec.output_type == entity_lib.OutputType.FREE:
             if not action_spec.tag == "media":
                 if action_spec.tag == "phone":
-                    # pattern = r"\[observation\] (?:\[Action done on phone\]|\[Conducted action\]) (.*?)(?=\[observation\]|Summary of recent observations|$)"
-                    # matches = re.findall(pattern, context, re.DOTALL)
-                    # # Format the output with numbering
-                    # numbered_output = "\n".join(
-                    #     [
-                    #         f"{i + 1}. [Action done on phone] {match.strip()}"
-                    #         for i, match in enumerate(matches)
-                    #     ]
-                    # )
-                    # actions_conducted = "Recently taken actions:\n" + numbered_output + "\n"
+                    pattern = r"\[observation\] (?:\[Action done on phone\]|) (.*?)(?=\[observation\]|## CURRENT DATE AND TIME|$)"
+                    matches = re.findall(pattern, context, re.DOTALL)
+                    # Format the output with numbering
+                    numbered_output = "\n".join(
+                        [f"{i + 1}. {match.strip()}" for i, match in enumerate(matches)]
+                    )
+                    actions_conducted = "\nRecently taken actions:\n" + numbered_output + "\n"
                     # cot_call = (
                     #     " ".join(
                     #         [
@@ -129,7 +126,7 @@ class AllActComponent(entity_component.ActingComponent):
                     # )
                     output = prefix
                     output += prompt.open_question(
-                        call_to_action,  # cot_call,  #
+                        call_to_action + actions_conducted,  # cot_call,  #
                         max_tokens=500,
                         answer_prefix=output,
                         answer_label="Answer",
