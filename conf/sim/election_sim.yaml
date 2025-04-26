@@ -1,0 +1,15 @@
+example_name: election
+gamemasters:
+  online_gamemaster: app_side_only_gamemaster
+  reallife_gamemaster: null
+load_path: ''
+model: gpt-4o-mini
+num_agents: 20
+num_episodes: 1
+persona_type: Reddit.Big5
+platform: Mastodon
+run_name: run1
+seed: 1
+sentence_encoder: sentence-transformers/all-mpnet-base-v2
+use_news_agent: with_images
+use_server: false

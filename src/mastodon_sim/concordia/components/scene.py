@@ -15,7 +15,6 @@
 """A GameMaster that simulates a player's interaction with their phone."""
 
 import re
-import textwrap
 import threading
 
 # _PHONE_CALL_TO_ACTION = textwrap.dedent("""\
@@ -42,6 +41,7 @@ from concordia.typing.entity import OutputType
 from mastodon_sim import mastodon_ops
 from mastodon_sim.concordia.components import apps, logging
 from mastodon_sim.concordia.components.apps import COLOR_TYPE
+from sim.sim_utils.misc_sim_utils import ConfigStore
 
 file_lock = threading.Lock()
 
@@ -51,44 +51,6 @@ DEFAULT_CALL_TO_SPEECH = (
     'Cristina -- "Hello! Mighty fine weather today, right?", '
     'Ichabod -- "I wonder if the alfalfa is ready to harvest", or '
     'Townsfolk -- "Good morning".\n'
-)
-
-_PHONE_CALL_TO_ACTION = textwrap.dedent("""\
-    Based on {name}'s current goal, plans and observations, what SINGLE specific action would they likely perform on their phone right now, and what information would they need to perform it?
-    Use your plan for current phone usage, tagged as tagged as [Planned Actions for upcoming Phone Usage] in your observations, alongside your previous actiosn to actualize the plan conducted in the current usage, tagged as [Action done on phone] to decide your next single action.
-    Mention a concrete action that can easily be converted into an API call, and don't answer with vague and general responses.
-
-    Guidelines:
-    1. Choose a single, specific action that can be performed using one app.
-    2. Ensure the action is contextually appropriate, considering recent observations.
-    3. Provide a detailed description of the exact action, including the app used and important context such as Toot IDs.
-    4. The action should adhere to {name}'s plans, but deviate if a more suitable option is presented.
-
-    Examples of contextually appropriate actions:
-    - Using the Mastodon app to read own timeline: {name} opens the Mastodon app and reads their feed.
-    - Posting a toot: {name} opens the Mastodon app and posts a toot.
-    - Checking Mastodon notifications: "{name} reads their Mastodon notifications"
-    - Liking a Mastodon post: {name} likes a post they have recently read with a given Toot ID. (Return toot ID of the post you want to like)
-    - Replying to a Mastodon post: {name} replies to a post they have recently read with a given Toot ID.
-    - Boosting a Mastodon post: {name} opens the Mastodon app to boost (Retweet) a toot - that shares it with their own followers. (Return Toot ID and the exact contents of the toot to be boosted.)
-    - Read another user's timeline: If you find a user interesting you can view their past activity and timeline (include their first name)
-
-    Remember:
-    - Consider current observations so as not to repeat actions that have already been performed.
-    - Certain actions require prior knowledge (e.g., liking or replying to a specific post) which would require reading that information recently
-    - Don't suggest reading notifications or feeds if they've already been checked recently.
-    - Consider the time of day and the agent's current situation when suggesting actions.
-    - Ensure responses to other toots are done using the Toot Response feature and not in a new toot
-    - If the action is a post or message, a direct quote of that post or message should be included.
-    - If reading from a timeline or notifications, just state that — don't fabricate what has been read.
-
-    Note: Carefully look at most recent observations so as to not repeat any actions. Ensure you never repeat what you have already posted.
-    {name} should like a toot if they agree with it.
-    {name} should boost a toot if they strongly agree with it and want people in their timeline to also see it.
-  """)
-
-_PHONE_ACTION_SPEC = agent.ActionSpec(
-    call_to_action=_PHONE_CALL_TO_ACTION, output_type=OutputType.FREE, tag="phone"
 )
 
 
@@ -115,8 +77,10 @@ def build(
     """
     memory = memory_factory.make_blank_memory()
     phone_component = _PhoneComponent(model, player, phone)
-    # reflectionx =
-    phone_spec = _PHONE_ACTION_SPEC
+    cfg = ConfigStore.get_config()
+    phone_spec = agent.ActionSpec(
+        call_to_action=cfg.soc_sys.call_to_action, output_type=OutputType.FREE, tag="phone"
+    )
     return game_master_lib.GameMaster(
         model=model,
         memory=memory,
@@ -165,7 +129,7 @@ class _PhoneComponent(component.Component):
         self._player = player
         self._phone = phone
         self._logger = logging.Logger(log_color, verbose, semi_verbose)
-        self._state = ""
+        self._state: list = []
 
     def name(self) -> str:
         return "PhoneComponent"
@@ -181,23 +145,28 @@ class _PhoneComponent(component.Component):
 
     def terminate_episode(self) -> bool:
         chain_of_thought = interactive_document.InteractiveDocument(self._model)
-        chain_of_thought.statement(f"Interaction with phone:\n{self._state}")
+        chain_of_thought.statement(
+            f"Assess {self._player.name}'s interactions with phone so far:\n"
+            + "\n- ".join(self._state)
+        )
         did_conclude = chain_of_thought.yes_no_question(
-            "Has the user achieved their goal with their phone or are they still"
-            " actively in the process of completing a phone task?"
+            "Is any of the following statements likely true:"
+            "\n - Performing this set of actions would fill up 30 minutes of the user's time."
+            "\n - By performing this set of actions, the user would achieve their goal for this period."
         )
         return did_conclude
 
     def update_after_event(self, event_statement: str):
         # print(f"Player state:\n{self._player.state()}")
         # TODO: May want to add player state to the transcript
+
         print("Inside phone_update_after_event")
-        print(f"Self state: {self._state}")
+        print("event statement: " + event_statement)
+        # print("Self state:" + "\n- ".join(self._state))
         assert isinstance(self._phone.apps[0], apps.MastodonSocialNetworkApp)
         app = self._phone.apps[0]
 
-        if self._state == "":
-            self._state += "You retrieved your timeline\n"
+        if self._state == []:
             p_username = app.public_get_username(self._player.name.split()[0])
             timeline = mastodon_ops.get_own_timeline(p_username, limit=10)
 
@@ -218,8 +187,10 @@ class _PhoneComponent(component.Component):
                         name=self._player.name,
                     )
                     call_to_action = (
-                        f"{media_contents!s} Context: Sussinctly describe this image in the form of an impression that it made on {self._player.name.split()[0]} when they viewed it alongside the following text of the toot they just read on the Mastodon app:"
+                        f"{media_contents!s} Context: Sussinctly describe this image in the form of an impression that it made on {self._player.name.split()[0]} when they viewed it alongside the following text of the toot they just read on the Mastodon app: "
+                        + "'"
                         + toot_headline
+                        + "'"
                     )
                     media_desc = self._player.act(
                         action_spec=agent.ActionSpec(
@@ -240,41 +211,46 @@ class _PhoneComponent(component.Component):
                     )
                     media_desc = "Impression of attached image: \n" + media_desc
                     print(media_desc)
-                output_now += f"User: {post['account']['display_name']} (@{post['account']['username']}), Content: {_clean_html(post['content'])} + {media_desc}, Toot ID: {post['id']}\n "
+                output_now += f"User: {post['account']['display_name']} (@{post['account']['username']})\nContent: {_clean_html(post['content'])}\n{media_desc}\nToot ID: {post['id']}"
 
+            self._state.append(f"- {self._player.name} retrieved their timeline")
             self._player.observe(f"[Action done on phone]: Retrieved timeline: \n{output_now}")
             return [f"[Action done on phone]: Retrieved timeline: \n{output_now}"]
 
         chain_of_thought = interactive_document.InteractiveDocument(self._model)
         chain_of_thought.statement(event_statement)
-        check_post = chain_of_thought.yes_no_question(
-            "Does the action in the above transcript involve the user posting a toot, replying to a toot, or boosting a toot?"
-        )
+        # check_post = chain_of_thought.yes_no_question(
+        #     "Does the action in the above transcript involve the user posting a toot, replying to a toot, or boosting a toot?"
+        # )q
         # print(check_post)
-        if check_post:
-            check_dup = chain_of_thought.yes_no_question(
-                f"Does the above toot/ reply to another toot have almost exactly the same content as one of the toots in the following list of actions? Answer No if the list is empty.: Actions: {self._state}"
+        # if check_post:
+        check_dup = chain_of_thought.yes_no_question(
+            f"Would {self._player.name} see this action as essentially acheiving the same thing as an action in the following list describing previously taken actions? (Answer No if the list is empty.): \nPrevious actions:\n"
+            + "\n- ".join(self._state)
+        )
+        # print(check_dup)
+        if check_dup:
+            self._state.append(
+                "- (attempt failed: duplicated a previously taken action)" + event_statement.strip()
             )
-            # print(check_dup)
-            if check_dup:
-                self._player.observe(
-                    f"The following phone action was not conducted because it has already been done - {event_statement}"
-                )
-                return [
-                    f"The following phone action was not conducted because it has already been done - {event_statement}"
-                ]
+            self._player.observe(
+                f"[Action done on phone]: The following phone action was not conducted because it has already been taken - {event_statement}"
+            )
+            return [
+                f"[Action done on phone]: The following phone action was not conducted because it has already been taken - {event_statement}"
+            ]
 
-        self._state += "\n" + event_statement.strip()
+        self._state.append("(attempt successful)" + event_statement.strip())
         action_names = [a.name for a in app.actions()]
         chain_of_thought.statement(app.description())
         action_index = chain_of_thought.multiple_choice_question(
             " ".join(
                 [
-                    "In the above transcript, what actions did the user perform?",
-                    "If the transcript mentions multiple actions, pick ones that contribute content, like making a post or reply.",
-                    "Also the one that is the most specific and the given information is sufficient to perform it.",
-                    "Remember that the get_own_timeline shows all posts from people the user follows and should be chosen when the user mentions vieweing their timeline.",
-                    "Example: If the user mentions checking out other artists, but doesn't mention who, do not conduct that action.",
+                    "In the above transcript, what action did the user perform?",
+                    "Pick the one that is the most specific and has sufficient information to perform it.",
+                    "If the transcript mentions multiple actions, pick one that contributes content, like making a post or reply.",
+                    "Remember that the get_own_timeline shows all posts from people the user follows and should be chosen when the user mentions viewing their timeline.",
+                    "Example: If the user mentions checking out other artists, but doesn't mention who, do not pick that action.",
                 ]
             ),
             answers=action_names,
@@ -299,7 +275,7 @@ class _PhoneComponent(component.Component):
             output = []
             for post in timeline:
                 output.append(
-                    f"User: {post['account']['display_name']} (@{post['account']['username']}), Content: {_clean_html(post['content'])}, Toot ID: {post['id']}"
+                    f"\nUser: {post['account']['display_name']} (@{post['account']['username']})\nContent: {_clean_html(post['content'])}\nToot ID: {post['id']}"
                 )
             if len(output) > 0:
                 toot_index = chain_of_thought.multiple_choice_question(
@@ -314,6 +290,9 @@ class _PhoneComponent(component.Component):
         print("Continuing action!")
         action = app.actions()[action_index]
 
+        # # pull out suggested action from action_suggester logging change to store in output
+        app.action_logger.dummy = self._player._log["ActionSuggester"]["Selected action"]
+
         try:
             argument_text = chain_of_thought.open_question(
                 action.instructions(),
@@ -327,13 +306,20 @@ class _PhoneComponent(component.Component):
                 f" with the argument_text:\n{argument_text}",
                 color="yellow",
             )
+
             result = app.invoke_action(action, argument_text)
 
             # TODO: verify if this makes sense
             if isinstance(result, str):
                 try:
-                    self._player.observe(f"[Action done on phone] : {result}")
-                    self._print("Phone action result observed.", color="yellow")
+                    if "Please conduct a different action" in result:
+                        self._player.observe(
+                            f"[Action done on phone] : Duplicate Action Attempted!! {result}"
+                        )
+                        self._print("Duplicate phone action result observed.", color="yellow")
+                    else:
+                        self._player.observe(f"[Action done on phone] : {result}")
+                        self._print("Phone action result observed.", color="yellow")
                 except Exception as e:
                     self._print(f"Error while observing result: {e}", color="red")
 

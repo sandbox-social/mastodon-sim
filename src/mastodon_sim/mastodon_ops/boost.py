@@ -9,6 +9,29 @@ from mastodon_sim.mastodon_ops.get_client import get_client
 from mastodon_sim.mastodon_ops.login import login
 
 
+def boost_check(login_user: str, toot_id: str) -> bool:
+    load_dotenv(find_dotenv())  # Load environment variables from .env file
+
+    try:
+        access_token = login(login_user)
+        mastodon = get_client()
+        mastodon.access_token = access_token
+
+        # Check
+        logger.debug(f"Attempting to check if {login_user} has boosted toot {toot_id}...")
+        reblogged_by = mastodon.status_reblogged_by(toot_id)
+        # Check if the user is in the lists
+        boosted = any(user["acct"] == login_user for user in reblogged_by)
+        logger.info(f"Successfully checked if {login_user} boosted post {toot_id} - {boosted}.")
+        return boosted
+    except ValueError as e:
+        logger.error(f"Error: {e}")
+        raise
+    except Exception as e:
+        logger.exception(f"An unexpected error occurred: {e}")
+        raise
+
+
 def boost_toot(login_user: str, target_user: str, toot_id: str) -> None:
     """Boost (reblog) a post from a user's timeline on Mastodon.
 
