@@ -1,7 +1,7 @@
 import os
+
 import requests
-from news_agent_utils import save_json, get_openai_client
-from openai import OpenAI
+from news_agent_utils import get_openai_client, save_json
 
 town_history = [
     "Storhampton is a small town with a population of approximately 2,500 people.",
@@ -50,31 +50,31 @@ def fetch_news_headlines(api_key, query="environment sustainability climate"):
 
 def transform_news_headline_for_sim(headlines, batch_size=1):
     system = (
-        f"Act as a journalist mapping real-world news articles to the events or characteristics of a given simulation.\n\n"
-        f"You will be provided with a description of a simulation, which includes its details, events, and scenarios. "
-        f"Your task is to identify parallels between current real-world news stories and the events described in the simulation. "
-        f"You should make connections that help readers understand how the simulation mirrors or differs from reality.\n\n"
-        f"**Steps**\n\n"
-        f"1. **Analyze the Simulation:** Fully understand the events and characteristics of the given simulation. "
-        f"Take note of key elements such as themes, scenarios, and notable events.\n\n"
-        f"2. **Understand the News Headline:** Carefully read the provided news headline. Identify the main points, themes, "
-        f"and significant facts that could relate back to elements of the simulation.\n\n"
-        f"3. **Find Parallels:** Identify similarities or contrasts with the simulated events and real-world scenarios. "
-        f"Reflect on aspects such as outcomes, causes, and potential consequences. Make sure to establish both the "
-        f"similarities and differences.\n\n"
-        f"4. **Provide Reasoning:** In your conclusion, explain why the simulation is relevant to the news headline. "
-        f"Offer a thoughtful discussion of the potential insight or lessons learned from mapping the two together.\n\n"
-        f"**Output Format**\n\n"
-        f"- **Provide a brief summary of the news story.**\n"
-        f"- **Indicate the specific simulation elements that relate to the news story.**\n"
-        f"- **Explain how these elements parallel or differ from the real-world scenario.**\n"
-        f"- **Use bullet points for distinct aspects to compare/contrast, followed by a concluding discussion.**\n\n"
-        f"**Notes**\n\n"
-        f"- Be objective in presenting the connections.\n"
-        f"- When identifying parallels, provide enough context so readers can understand specifics without having knowledge "
-        f"of the simulation or news article in advance.\n"
-        f"- Use accessible language that makes complex connections easy for readers to follow.\n"
-        f"-Ensure that the headline is not biased or opinionated."
+        "Act as a journalist mapping real-world news articles to the events or characteristics of a given simulation.\n\n"
+        "You will be provided with a description of a simulation, which includes its details, events, and scenarios. "
+        "Your task is to identify parallels between current real-world news stories and the events described in the simulation. "
+        "You should make connections that help readers understand how the simulation mirrors or differs from reality.\n\n"
+        "**Steps**\n\n"
+        "1. **Analyze the Simulation:** Fully understand the events and characteristics of the given simulation. "
+        "Take note of key elements such as themes, scenarios, and notable events.\n\n"
+        "2. **Understand the News Headline:** Carefully read the provided news headline. Identify the main points, themes, "
+        "and significant facts that could relate back to elements of the simulation.\n\n"
+        "3. **Find Parallels:** Identify similarities or contrasts with the simulated events and real-world scenarios. "
+        "Reflect on aspects such as outcomes, causes, and potential consequences. Make sure to establish both the "
+        "similarities and differences.\n\n"
+        "4. **Provide Reasoning:** In your conclusion, explain why the simulation is relevant to the news headline. "
+        "Offer a thoughtful discussion of the potential insight or lessons learned from mapping the two together.\n\n"
+        "**Output Format**\n\n"
+        "- **Provide a brief summary of the news story.**\n"
+        "- **Indicate the specific simulation elements that relate to the news story.**\n"
+        "- **Explain how these elements parallel or differ from the real-world scenario.**\n"
+        "- **Use bullet points for distinct aspects to compare/contrast, followed by a concluding discussion.**\n\n"
+        "**Notes**\n\n"
+        "- Be objective in presenting the connections.\n"
+        "- When identifying parallels, provide enough context so readers can understand specifics without having knowledge "
+        "of the simulation or news article in advance.\n"
+        "- Use accessible language that makes complex connections easy for readers to follow.\n"
+        "-Ensure that the headline is not biased or opinionated."
     )
 
     # Initialize prompt
@@ -93,9 +93,12 @@ def transform_news_headline_for_sim(headlines, batch_size=1):
 
     client = get_openai_client()
     all_mapped = []
-    batches = [headlines[i:i+batch_size] for i in range(0, len(headlines), batch_size)]
+    batches = [headlines[i : i + batch_size] for i in range(0, len(headlines), batch_size)]
     for batch in batches:
-        prompt = "\\n".join(batch) + "\\nMap ALL headlines. Use NER (e.g., replace Trump with Bill Fredrickson)."
+        prompt = (
+            "\\n".join(batch)
+            + "\\nMap ALL headlines. Use NER (e.g., replace Trump with Bill Fredrickson)."
+        )
         try:
             response = client.chat.completions.create(
                 model="gpt-4o",

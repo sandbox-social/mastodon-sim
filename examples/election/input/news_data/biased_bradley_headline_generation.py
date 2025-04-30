@@ -1,5 +1,4 @@
-import os
-from news_agent_utils import load_json, save_json, get_openai_client, get_candidate_headlines
+from news_agent_utils import get_candidate_headlines, get_openai_client, load_json, save_json
 
 town_history = [
     "Storhampton is a small town with a population of approximately 2,500 people.",
@@ -38,7 +37,7 @@ system = (
     "You will be provided with a description of a simulation, which includes its details, events, and scenarios. "
     "Steps\n\n"
     "1. Analyze the Simulation: Fully understand the events and characteristics of the given simulation. "
-    f"Take note of key elements such as themes, scenarios, and notable events.\n\n"
+    "Take note of key elements such as themes, scenarios, and notable events.\n\n"
     "2. Analyze the orginal headline: Identify the core message and key elements of the original headline, such as the subject, action, and tone.\n\n"
     "Determine any potential opportunities to highlight Bradley Carter's strengths or Bill Fredrickson's weaknesses.\n\n"
     "3.Identify Key Progressive Themes:  Emphasize values such as equity, innovation, environmental sustainability, healthcare reform, social justice."
@@ -69,6 +68,8 @@ Information about candidates: {candidate_info}
 
 Rewrite the following headlines accordingly.
 """
+
+
 def rewrite_biased_headlines(headlines, system, init_prompt):
     client = get_openai_client()
     rewritten = []
@@ -79,7 +80,10 @@ def rewrite_biased_headlines(headlines, system, init_prompt):
                 messages=[
                     {"role": "system", "content": system},
                     {"role": "user", "content": init_prompt},
-                    {"role": "user", "content": f"{h} Rewrite the headline, avoid repeating words."}
+                    {
+                        "role": "user",
+                        "content": f"{h} Rewrite the headline, avoid repeating words.",
+                    },
                 ],
                 max_tokens=512,
             )

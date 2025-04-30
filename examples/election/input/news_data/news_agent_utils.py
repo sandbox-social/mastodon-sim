@@ -1,7 +1,8 @@
+import json
 import os
+
 import openai
 from openai import OpenAI
-import json
 
 
 def transform_news_headline_for_sim(headlines, batch_size=5):
@@ -138,11 +139,14 @@ def transform_news_headline_for_sim(headlines, batch_size=5):
 
     return all_mapped_headlines, not_possible_count
 
+
 def get_candidate_headlines(mapped_headlines):
     bill_headlines, bradley_headlines, other_headlines = [], [], []
     for headline in mapped_headlines:
-        if ("bill" in headline.lower() or "fredrickson" in headline.lower()) and ("bradley" in headline.lower() or "carter" in headline.lower()):
-            #if both of them are in the headline, split the headline into two: one for bill and one for bradley
+        if ("bill" in headline.lower() or "fredrickson" in headline.lower()) and (
+            "bradley" in headline.lower() or "carter" in headline.lower()
+        ):
+            # if both of them are in the headline, split the headline into two: one for bill and one for bradley
             if "bradley" in headline.lower():
                 splitted_headline = headline.lower().split("bradley")
             else:
@@ -159,13 +163,16 @@ def get_candidate_headlines(mapped_headlines):
 
     return bill_headlines, bradley_headlines, other_headlines
 
+
 def save_json(data, path):
     with open(path, "w") as f:
         json.dump(data, f, indent=2)
 
+
 def load_json(path):
     with open(path) as f:
         return json.load(f)
+
 
 def get_openai_client():
     key = os.getenv("OPENAI_API_KEY")
