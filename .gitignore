@@ -179,7 +179,7 @@ dist/
 
 .log
 lib/
-*.html
+# *.html
 
 clientcred.secret
 notes.txt

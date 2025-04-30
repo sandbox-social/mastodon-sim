@@ -45,12 +45,17 @@ def check_env() -> None:
     """Check the environment variables and print their values."""
     # Attempt to load the .env file
     if load_env():
-        logger.info("Successfully loaded .env file.")
+        logger.info("Successfully loaded .env file from:" + find_dotenv())
     else:
         logger.warning("Warning: .env file not found or empty.")
 
     # List of expected environment variables
-    expected_vars = ["API_BASE_URL", "EMAIL_PREFIX", "MASTODON_CLIENT_ID", "MASTODON_CLIENT_SECRET"]
+    expected_vars = [
+        "API_BASE_URL",
+        "EMAIL_PREFIX",
+        "MASTODON_CLIENT_ID",
+        "MASTODON_CLIENT_SECRET",
+    ]
 
     # Check and print each environment variable
     for var in expected_vars:

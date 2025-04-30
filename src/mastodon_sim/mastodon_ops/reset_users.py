@@ -28,7 +28,19 @@ from mastodon_sim.logging_config import logger
 from mastodon_sim.mastodon_ops.delete_posts import delete_posts
 from mastodon_sim.mastodon_ops.get_client import get_client
 from mastodon_sim.mastodon_ops.login import login
+from mastodon_sim.mastodon_ops.timeline import get_public_timeline
 from mastodon_sim.mastodon_ops.unfollow import unfollow
+from mastodon_sim.mastodon_utils import get_users_from_env
+
+
+def clear_mastodon_server(max_num_agents):
+    users = get_users_from_env()[: max_num_agents + 1]
+    reset_users(users, skip_confirm=True, parallel=True)
+    if len(get_public_timeline(limit=None)):
+        print("All posts not cleared. Running reset operation again...")
+        reset_users(users, skip_confirm=True, parallel=True)
+    else:
+        print("All posts cleared")
 
 
 def reset_profile(mastodon) -> None:

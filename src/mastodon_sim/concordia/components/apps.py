@@ -15,19 +15,6 @@ from typing import Any, Literal, get_type_hints
 import docstring_parser  # pytype: disable=import-error  # Fails on GitHub.
 import termcolor
 
-# from election_sim.sim_utils.misc_sim_utils import event_logger
-# event_logger_class = TypeVar('event_logger', bound=event_logger)
-
-# write_path = ""
-
-
-# def set_app_output_write_path(path):
-#     global write_path
-#     write_path = path
-
-
-# file_lock = threading.Lock()
-# region[setup]s
 _DATE_FORMAT = "%Y-%m-%d %H:%M"
 
 _ARGUMENT_REGEX = re.compile(r"(?P<param>\w+):\s*(?P<value>[^\n]+)")
@@ -267,6 +254,7 @@ class PhoneApp(metaclass=abc.ABCMeta):
     simulation with @app_action.
     """
 
+    action_logger: Any = None
     _log_color: COLOR_TYPE = "blue"
 
     @abc.abstractmethod
@@ -371,18 +359,30 @@ def _parse_argument_text(args_text: str) -> dict[str, str]:
     return {m.group("param"): m.group("value").strip() for m in matches if m.group("value").strip()}
 
 
+()
 # region[Mastodon Social Network App]
 
 
 @dataclasses.dataclass
 class MastodonSocialNetworkApp(PhoneApp):
     """Mastodon social network app.
-
+        description = (
+            "MastodonSocialNetworkApp is a social media application similar to"
+            " Twitter that allows users to interact on social media.\n\n    This"
+            " app provides functionality for users to post status updates (toots), follow"
+            " other users, like, boost, and respond to posts, and manage their"
+            " notifications.\n\n    Critically important: Operations such as"
+            " liking, boosting, replying, etc. require a `toot_id`. To obtain a"
+            " `toot_id`, you must have memory/knowledge of a real `toot_id`. If you"
+            " don't know a `toot_id`, you can't perform actions that require it."
+            " `toot_id`'s can be retrieved using the `get_timeline` action."
+        )
     A social media application similar to Twitter that allows users to interact on social media.
     """
 
     action_logger: Any = None
     perform_operations: bool = True
+    app_description: str = "MastodonSocialNetworkApp"
     _log_color: COLOR_TYPE = dataclasses.field(default="blue", init=False)
     _mastodon_ops: Any = dataclasses.field(default=None, init=False)
     _user_mapping: dict[str, str] = dataclasses.field(default_factory=dict, init=False)
@@ -400,18 +400,7 @@ class MastodonSocialNetworkApp(PhoneApp):
 
     def description(self) -> str:
         """Define the description of the app."""
-        description = (
-            "MastodonSocialNetworkApp is a social media application similar to"
-            " Twitter that allows users to interact on social media.\n\n    This"
-            " app provides functionality for users to post status updates (toots), follow"
-            " other users, like, boost, and respond to posts, and manage their"
-            " notifications.\n\n    Critically important: Operations such as"
-            " liking, boosting, replying, etc. require a `toot_id`. To obtain a"
-            " `toot_id`, you must have memory/knowledge of a real `toot_id`. If you"
-            " don't know a `toot_id`, you can't perform actions that require it."
-            " `toot_id`'s can be retrieved using the `get_timeline` action."
-        )
-        return description
+        return self.app_description
 
     def set_user_mapping(self, mapping: dict[str, str]) -> None:
         """Set the mapping of display names to usernames."""
@@ -425,7 +414,7 @@ class MastodonSocialNetworkApp(PhoneApp):
     def _get_username(self, display_name: str) -> str:
         """Get the username for a given display name."""
         username = self._user_mapping.get(display_name)
-        self._print(f"Mapped {display_name} to @{username}", emoji="🔗")
+        # self._print(f"Mapped {display_name} to @{username}", emoji="🔗")
         if not username:
             raise ValueError(f"No username found for display name: {display_name}")
         return username
@@ -457,27 +446,33 @@ class MastodonSocialNetworkApp(PhoneApp):
 
         return bio_message
 
-    # @app_action
-    # def read_profile(self, current_user: str, target_user: str) -> tuple[str, str]:
-    #     """Read a user's profile on Mastodon social network."""
-    #     current_user = current_user.split()[0]
-    #     target_user = target_user.split()[0]
+    @app_action
+    def read_profile(self, current_user_full: str, target_user_full: str) -> tuple[str, str]:
+        """Read a user's profile on Mastodon social network."""
+        current_user = current_user_full.split()[0]
+        target_user = target_user_full.split()[0]
 
-    #     current_username = self._get_username(current_user)
-    #     target_username = self._get_username(target_user)
-    #     self._print(f"@{current_username} reading profile of @{target_username}", emoji="👀")
-    #     if self.perform_operations:
-    #         display_name, bio = self._mastodon_ops.read_bio(current_username, target_username)
-    #     else:
-    #         display_name, bio = "Mock Name", "Mock Bio"
-    #         self._print(
-    #             "Skipping real Mastodon API call since perform_operations is set to False",
-    #             color="light_grey",
-    #         )
-    #     self._print(f"Profile: {display_name} - {bio}", emoji="📄")
-    #     with open("/scratch/ss14247/misinfo_simulator/mastodon-sim/notebooks/write_path+ "app_logger.txt".txt", "a") as f:
-    #         f.write(f"{current_user} read profile of user: {target_user}\n")
-    #     return display_name, bio
+        current_username = self._get_username(current_user)
+        target_username = self._get_username(target_user)
+        self._print(f"@{current_username} reading profile of @{target_username}", emoji="👀")
+        if self.perform_operations:
+            display_name, bio = self._mastodon_ops.read_bio(current_username, target_username)
+        else:
+            display_name, bio = "Mock Name", "Mock Bio"
+            self._print(
+                "Skipping real Mastodon API call since perform_operations is set to False",
+                color="light_grey",
+            )
+        self._print(f"Profile: {display_name} - {bio}", emoji="📄")
+
+        self.action_logger.log(
+            {
+                "source_user": current_user_full,
+                "label": "read_profile",
+                "data": {"target_user": target_user_full, "bio": bio},
+            }
+        )
+        return display_name, bio
 
     @app_action
     def follow_user(self, current_user: str, target_user: str) -> str:
@@ -1043,7 +1038,11 @@ class MastodonSocialNetworkApp(PhoneApp):
         )
         like_message = f"{current_user} (@{current_username}) liked post {toot_id} from {target_user} (@{target_username})"
         if self.perform_operations:
-            self._mastodon_ops.like_toot(current_username, target_username, toot_id)
+            check = self._mastodon_ops.like_check(current_username, toot_id)
+            if not check:
+                self._mastodon_ops.like_toot(current_username, target_username, toot_id)
+            else:
+                like_message = f"{current_user} (@{current_username}) has previously liked post {toot_id} from {target_user} (@{target_username}). Please conduct a different action!!"
         else:
             self._print(
                 "Skipping real Mastodon API call since perform_operations is set to False",
@@ -1062,9 +1061,9 @@ class MastodonSocialNetworkApp(PhoneApp):
     # region[additional methods]
 
     @app_action
-    def boost_toot(self, current_user: str, target_user: str, toot_id: str) -> None:
+    def boost_toot(self, current_user: str, target_user: str, toot_id: str) -> str:
         """Boost (reblog) a toot."""
-        print("like" + current_user)
+        print("boost" + current_user)
         current_user_full = str(current_user)
         current_user = current_user.split()[0]
         target_user_full = str(target_user)
@@ -1075,8 +1074,13 @@ class MastodonSocialNetworkApp(PhoneApp):
             f"@{current_username} boosting post {toot_id}",
             emoji="🔁",
         )
+        boost_message = f"{current_user} (@{current_username}) boosted post {toot_id} from {target_user} (@{target_username})"
         if self.perform_operations:
-            self._mastodon_ops.boost_toot(current_username, target_username, toot_id)
+            check = self._mastodon_ops.boost_check(current_username, toot_id)
+            if not check:
+                self._mastodon_ops.boost_toot(current_username, target_username, toot_id)
+            else:
+                boost_message = f"{current_user} (@{current_username}) has previously boosted post {toot_id} from {target_user} (@{target_username}). Please conduct a different action!!"
         self._print(
             f"@{current_username} boosted post {toot_id}",
             emoji="✅",
@@ -1088,6 +1092,7 @@ class MastodonSocialNetworkApp(PhoneApp):
                 "data": {"toot_id": str(toot_id), "target_user": target_user_full},
             }
         )
+        return boost_message
 
     # @app_action
     # def block_user(self, current_user: str, target_user: str) -> None:
