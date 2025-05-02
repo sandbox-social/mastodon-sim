@@ -45,10 +45,10 @@ CALL_TO_ACTION = """
 
 ## INSTRUCTIONS
 Determine what ONE action {name} would take next based on:
-- Their character and values
+- Their character and values via self-perception and goal descriptions
 - The current context and timeline
-- Without repeating recent actions
-- Acting authentically to their character
+- Not repeating recent actions
+If text-based, the text must reflect their posting style descriptions.
 
 ## OUTPUT FORMAT
 STEP 1: [Analyze {name}'s motivation based on their character]
@@ -291,6 +291,11 @@ def generate_output_configs(cfg):
             "pre_act_key": "## ACTION SUGGESTION\n",
             # "seq_index": 8
         },  # cls._get_component_name()=ActionSuggester
+        {
+            "name": "PostingStyle",
+            "pre_act_key": "## POSTING STYLE\n",
+            # "seq_index": 1
+        },  # cls._get_component_name()=Constant
     ]
     for it, comp_dict in enumerate(agents["base_agent"]["components"]):
         comp_dict["seq_index"] = it
@@ -321,6 +326,7 @@ def generate_output_configs(cfg):
         agent["role_dict"] = {"name": "candidate", "module_path": "agent_lib.candidate"}
         agent["goal"] = CANDIDATE_INFO[partisan_type]["name"] + "'s goal is " + candidates_goal
         agent["context"] = ""
+        agent["style"] = ""
         agent["seed_toot"] = ""
         candidate_configs.append(agent)
     # ----------------
@@ -354,11 +360,12 @@ def generate_output_configs(cfg):
         agent = {}
         agent["name"] = row["Name"]
         agent["gender"] = row["Sex"].lower()
-        agent["context"] = row["context"]
+        agent["context"] = row["Context"]
+        agent["style"] = row["Style"]
         agent["party"] = ""  # row.get("Political_Identity", "")
         agent["seed_toot"] = ""
         agent["role_dict"] = {"name": "voter", "module_path": "agent_lib.voter"}
-        agent["goal"] = "Their goal is have a good day and vote in the election."
+        agent["goal"] = row["Context"] + " Their goal is have a good day and vote in the election."
         voter_configs.append(agent)
 
     # add custom setting-specific agent features

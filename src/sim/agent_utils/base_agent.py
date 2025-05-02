@@ -397,6 +397,7 @@ class BaseAgentBuilder(ABC):
         agent_name = config.name
         assert agent_name == input_data["agent_name"], "agent names not same!"
         goal = config.goal
+        post_style = input_data["style"]
         cfg = ConfigStore.get_config()
 
         raw_memory = legacy_associative_memory.AssociativeMemoryBank(memory)
@@ -461,6 +462,9 @@ class BaseAgentBuilder(ABC):
             elif name == "ActionSuggester":
                 settings["action_probabilities"] = cls.get_suggested_action_probabilities()
                 component_constructor = ActionSuggester
+            elif name == "PostingStyle":
+                settings["state"] = post_style
+                component_constructor = ext_components.constant.Constant
             else:
                 exit("no matching component class found")
             # check for and add dependencies

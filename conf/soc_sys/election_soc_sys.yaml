@@ -15,13 +15,13 @@ call_to_action: '
 
   Determine what ONE action {name} would take next based on:
 
-  - Their character and values
+  - Their character and values via self-perception and goal descriptions
 
   - The current context and timeline
 
-  - Without repeating recent actions
+  - Not repeating recent actions
 
-  - Acting authentically to their character
+  If text-based, the text must reflect their posting style descriptions.
 
 
   ## OUTPUT FORMAT
@@ -109,24 +109,24 @@ episode_call_to_action: "\n{name} has decided to open the Storhampton.social Mas
   \ that engage her interests in the election and her passions\".\n"
 exp_name: independent
 gamemaster_memories:
-- Jessica Thompson is at their private home.
-- Michael Robertson is at their private home.
-- Sam Jenkins is at their private home.
-- Laura Mitchell is at their private home.
-- Rahul Desai is at their private home.
-- Sam Robertson is at their private home.
+- Michael Donovan is at their private home.
+- Jessica Lopez is at their private home.
+- David Kim is at their private home.
+- Rachel Thompson is at their private home.
+- Arjun Patel is at their private home.
+- Alex Carter is at their private home.
 - Emily Chen is at their private home.
-- Michael Harris is at their private home.
-- Jason Miller is at their private home.
-- Lisa Collins is at their private home.
-- Nathan Torres is at their private home.
-- Zachary Patel is at their private home.
-- Emily Thompson is at their private home.
-- Rachel Kim is at their private home.
-- Alex Thompson is at their private home.
-- Carlos Mendes is at their private home.
-- Chris Anderson is at their private home.
-- Jessica Rodriguez is at their private home.
+- Michael Thompson is at their private home.
+- David Nguyen is at their private home.
+- Lisa Martinez is at their private home.
+- Nathan Ramirez is at their private home.
+- Zoe Lin is at their private home.
+- Elijah Martin is at their private home.
+- Sophia Johnson is at their private home.
+- Eric Thompson is at their private home.
+- Luciana Santos is at their private home.
+- Tom Richards is at their private home.
+- Javier Gonzalez is at their private home.
 - Bill Fredrickson is at their private home.
 - Bradley Carter is at their private home.
 - The workday begins for the Storhampton Gazette

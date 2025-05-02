@@ -82,6 +82,7 @@ def generate_remaining_and_write_configs(sim: dict):
     ccfg["hydra"]["job"]["name"] = config_label + "_" + "${now:%Y-%m-%d_%H-%M-%S}"
     ccfg["hydra"]["run"] = {}
     ccfg["hydra"]["run"]["dir"] = "examples/" + "${sim.example_name}/" + "outputs/" + config_label
+    ccfg["hydra"]["output_subdir"] = "configs/" + config_label
     # +"/"+\
     #     "${hydra.job.name}"+"_"+\
     #     "${now:%Y-%m-%d_%H-%M-%S}"
