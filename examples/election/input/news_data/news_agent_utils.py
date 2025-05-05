@@ -1,3 +1,4 @@
+import json
 import os
 
 import openai
@@ -101,9 +102,8 @@ def transform_news_headline_for_sim(headlines, batch_size=5):
     I will give you news article headings and you should give me the corresponding mapped headings. I want a single news heading only.
     """
 
-    key = os.getenv("OPENAI_API_KEY")
     all_mapped_headlines = []
-    client = OpenAI(api_key=key)
+    client = get_openai_client()
     total_headlines = len(headlines)  # function input
     batches = [headlines[i : i + batch_size] for i in range(0, total_headlines, batch_size)]
 
@@ -138,3 +138,42 @@ def transform_news_headline_for_sim(headlines, batch_size=5):
                 not_possible_count += 1
 
     return all_mapped_headlines, not_possible_count
+
+
+def get_candidate_headlines(mapped_headlines):
+    bill_headlines, bradley_headlines, other_headlines = [], [], []
+    for headline in mapped_headlines:
+        if ("bill" in headline.lower() or "fredrickson" in headline.lower()) and (
+            "bradley" in headline.lower() or "carter" in headline.lower()
+        ):
+            # if both of them are in the headline, split the headline into two: one for bill and one for bradley
+            if "bradley" in headline.lower():
+                splitted_headline = headline.lower().split("bradley")
+            else:
+                splitted_headline = headline.lower().split("carter")
+
+            bill_headlines.append(splitted_headline[0])
+            bradley_headlines.append(splitted_headline[1])
+        elif "bill" in headline.lower() or "fredrickson" in headline.lower():
+            bill_headlines.append(headline)
+        elif "bradley" in headline.lower() or "carter" in headline.lower():
+            bradley_headlines.append(headline)
+        elif headline != "":
+            other_headlines.append(headline)
+
+    return bill_headlines, bradley_headlines, other_headlines
+
+
+def save_json(data, path):
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+
+
+def load_json(path):
+    with open(path) as f:
+        return json.load(f)
+
+
+def get_openai_client():
+    key = os.getenv("OPENAI_API_KEY")
+    return OpenAI(api_key=key)
