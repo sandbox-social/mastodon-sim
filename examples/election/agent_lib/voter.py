@@ -6,12 +6,12 @@ from concordia.components import agent as ext_components
 # Default probabilities for different Mastodon operations
 ACTION_PROBABILITIES = {
     # High frequency actions
-    "like_toot": 0.35,  # Most common action
-    "boost_toot": 0.15,  # Common but less than likes
-    "toot": 0.20,  # Regular posting
-    "reply": 0.15,
+    "like_toot": 0.2,  # Most common action
+    "boost_toot": 0.2,  # Common but less than likes
+    "toot": 0.2,  # 0.20,  # Regular posting
+    "reply": 0.4,  # 0.15,
     # Medium frequency actions
-    "follow": 0.15,  # Following new accounts
+    "follow": 0.0,  # Following new accounts
     "unfollow": 0.00,  # 25,  # Unfollowing accounts
     "print_timeline": 0.0,  # Reading timeline
     # Low frequency actions
@@ -65,7 +65,7 @@ class AgentBuilder(BaseAgentBuilder):
         names = [
             [
                 "ElectionInformation",
-                "CRITICAL ELECTION INFORMATION\n",
+                "## CRITICAL ELECTION INFORMATION\n",
             ],  # cls._get_component_name()=ElectionInformation
             [
                 candidates[0] + "RelevantOpinion",

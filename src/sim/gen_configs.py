@@ -32,6 +32,11 @@ def generate_sim_config(example_name):
     }
     default_sim_config["example_name"] = example_name
     default_sim_config["load_path"] = ""
+    default_sim_config["roleplaying_instructions"] = (
+        "<system>"
+        "You are simulating {name}, a character in a social science experiment. Always use third-person limited perspective when describing {name}'s thoughts and actions. Your goal is to determine the single most appropriate action {name} would take next on a social media platform."
+        "</system>"
+    )
 
     return default_sim_config
 
@@ -69,6 +74,7 @@ def generate_remaining_and_write_configs(sim: dict):
         output_file = Path("conf/" + name + "/" + sim["example_name"] + "_" + name + ".yaml")
         output_file.parent.mkdir(exist_ok=True, parents=True)
         with open(output_file, "w") as outfile:
+            print("writing " + str(output_file))
             yaml.dump(cfgg, outfile, default_flow_style=False)
 
     ccfg["hydra"] = {}
@@ -76,6 +82,7 @@ def generate_remaining_and_write_configs(sim: dict):
     ccfg["hydra"]["job"]["name"] = config_label + "_" + "${now:%Y-%m-%d_%H-%M-%S}"
     ccfg["hydra"]["run"] = {}
     ccfg["hydra"]["run"]["dir"] = "examples/" + "${sim.example_name}/" + "outputs/" + config_label
+    ccfg["hydra"]["output_subdir"] = "configs/" + config_label
     # +"/"+\
     #     "${hydra.job.name}"+"_"+\
     #     "${now:%Y-%m-%d_%H-%M-%S}"

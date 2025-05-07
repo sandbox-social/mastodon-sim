@@ -53,8 +53,15 @@ def make_profiles(agent_data):
     for agent_info in agent_data:
         roles[agent_info["name"]] = agent_info["role_dict"]["name"]
         profiles[agent_info["name"]] = {}
+        agent_info["role_dict"]["agent_name"] = agent_info["name"]
+        agent_info["role_dict"] = (
+            agent_info["role_dict"] | {"style": agent_info["style"]}
+            if agent_info["role_dict"]["name"] != "exogenous"
+            else agent_info["role_dict"]
+        )
+
         profiles[agent_info["name"]]["role_dict"] = agent_info["role_dict"] | {
-            "agent_name": agent_info["name"]
+            "agent_name": agent_info["name"],
         }
         profiles[agent_info["name"]]["cfg"] = (
             agent_info["posts"]

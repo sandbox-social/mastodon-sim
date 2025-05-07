@@ -80,9 +80,6 @@ def post_seed_toots(agents, mastodon_apps):
 def run_sim(
     model,
     embedder,
-    agent_settings,
-    gamemaster_settings,
-    probes,
     output_post_analysis=False,
     save_checkpoints=False,
     load_from_checkpoint_path="",
@@ -102,13 +99,21 @@ def run_sim(
         start=SETUP_TIME, step_sizes=[time_step, datetime.timedelta(seconds=10)]
     )
 
+    # set probe settings
+    probes = OmegaConf.to_container(cfg.probes, resolve=True)
+
     # build agent models
-    agent_data = agent_settings["directory"]
+    agent_data = OmegaConf.to_container(cfg.agents.directory, resolve=True)
     get_idx = lambda name: [ait for ait, agent in enumerate(agent_data) if agent["name"] == name][0]
 
     profiles, roles = make_profiles(agent_data)  # profile format: (agent_config,role)
     role_parameters = setting_info["details"]["role_parameters"]
 
+    shared_memories = (
+        cfg.soc_sys.shared_agent_memories_template
+        + [cfg.soc_sys.setting_info.description]
+        + [cfg.soc_sys.social_media_usage_instructions]
+    )
     (
         importance_model,
         importance_model_gm,
@@ -118,8 +123,8 @@ def run_sim(
     ) = generate_concordia_memory_objects(
         model,
         embedder,
-        agent_settings["shared_memories"],
-        gamemaster_settings["gamemaster_memories"],
+        shared_memories,
+        cfg.soc_sys.gamemaster_memories,
         clock,
     )
 
@@ -150,7 +155,7 @@ def run_sim(
                     str(PROJECT_ROOT) + "/" + path for path in agent.posts[post_text]
                 ]
         else:
-            for observation in agent_settings["initial_observations"]:
+            for observation in cfg.agents.initial_observations:
                 agent.observe(observation.format(name=agent._agent_name))
 
     post_seed_toots(agents, mastodon_apps)
@@ -163,7 +168,7 @@ def run_sim(
 
     # Experimental version (epsiode call to action and thought chains)
     online_gamemaster_module = importlib.import_module(
-        "agent_utils." + gamemaster_settings["online_gamemaster"]
+        "agent_utils." + cfg.sim.gamemasters.online_gamemaster
     )
     env = online_gamemaster_module.GameMaster(
         model=model,
@@ -261,7 +266,7 @@ def main(cfg: DictConfig):
             + "/"
             + hydra.core.hydra_config.HydraConfig.get().job.name
         )
-    # make cfg globally accessible
+    # make cfg globally accessible through ConfigStore import
     ConfigStore.set_config(cfg)
 
     logger = logging.getLogger(__name__)
@@ -288,33 +293,10 @@ def main(cfg: DictConfig):
     )
     embedder = get_sentance_encoder(cfg.sim.sentence_encoder)
 
-    # set gamemaster settings
-    gamemaster_settings = {
-        "online_gamemaster": cfg.sim.gamemasters.online_gamemaster,
-        "gamemaster_memories": cfg.soc_sys.gamemaster_memories,
-    }
-
-    # set agent settings
-    agent_settings = {
-        "directory": OmegaConf.to_container(cfg.agents.directory, resolve=True),
-        "shared_memories": (
-            cfg.soc_sys.shared_agent_memories_template
-            + [cfg.soc_sys.setting_info.description]
-            + [cfg.soc_sys.social_media_usage_instructions]
-        ),
-        "initial_observations": cfg.agents.initial_observations,
-    }
-
-    # set probe settings
-    probes = OmegaConf.to_container(cfg.probes, resolve=True)
-
     # run sim
     run_sim(
         model,
         embedder,
-        agent_settings,
-        gamemaster_settings,
-        probes,
         load_from_checkpoint_path=cfg.sim.load_path,
     )
 

@@ -3,9 +3,9 @@ defaults:
 - probes: election_probes
 - agents: election_agents
 - sim: election_sim
-
 hydra:
   job:
     name: N${sim.num_agents}_T${sim.num_episodes}_${sim.persona_type}_${soc_sys.exp_name}_${agents.inputs.news_file}_${sim.use_news_agent}_${sim.run_name}_${now:%Y-%m-%d_%H-%M-%S}
+  output_subdir: configs/N${sim.num_agents}_T${sim.num_episodes}_${sim.persona_type}_${soc_sys.exp_name}_${agents.inputs.news_file}_${sim.use_news_agent}_${sim.run_name}
   run:
     dir: examples/${sim.example_name}/outputs/N${sim.num_agents}_T${sim.num_episodes}_${sim.persona_type}_${soc_sys.exp_name}_${agents.inputs.news_file}_${sim.use_news_agent}_${sim.run_name}

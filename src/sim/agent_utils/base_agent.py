@@ -1,5 +1,6 @@
 import ast
 import datetime
+import importlib
 import json
 import random
 import re
@@ -25,6 +26,8 @@ from concordia.typing import entity as entity_lib
 from concordia.typing import entity_component, logging
 from concordia.utils import helper_functions
 from concordia.utils import measurements as measurements_lib
+
+from sim.sim_utils.misc_sim_utils import ConfigStore
 
 DEFAULT_PRE_ACT_KEY = "Action"
 DEFAULT_ACTION_PROBABILITIES = {
@@ -83,7 +86,6 @@ class AllActComponent(entity_component.ActingComponent):
             sorted(set(contexts.keys()) - set(self._component_order))
         )
         return "\n\n".join(contexts[name] for name in order if contexts.get(name, False))
-        # return "\n".join(contexts[name] for name in order if contexts[name])
 
     def get_action_attempt(
         self,
@@ -99,60 +101,61 @@ class AllActComponent(entity_component.ActingComponent):
             timedelta=helper_functions.timedelta_to_readable_str(self._clock.get_step_size()),
         )
 
+        prefix = self.get_entity().name + " "
+        prefix = "STEP 1: " + prefix if action_spec.tag == "phone" else prefix
         if action_spec.output_type == entity_lib.OutputType.FREE:
             if not action_spec.tag == "media":
                 if action_spec.tag == "phone":
-                    pattern = r"\[observation\] (?:\[Action done on phone\]|\[Conducted action\]) (.*?)(?=\[observation\]|Summary of recent observations|$)"
+                    pattern = r"\[observation\] (?:\[Action done on phone\]|) (.*?)(?=\[observation\]|## CURRENT DATE AND TIME|$)"
                     matches = re.findall(pattern, context, re.DOTALL)
                     # Format the output with numbering
                     numbered_output = "\n".join(
-                        [
-                            f"{i + 1}. [Action done on phone] {match.strip()}"
-                            for i, match in enumerate(matches)
-                        ]
+                        [f"{i + 1}. {match.strip()}" for i, match in enumerate(matches)]
                     )
-                    actions_conducted = "Recently taken actions:\n" + numbered_output + "\n"
-                    cot_call = (
-                        " ".join(
-                            [
-                                "Think step-by-step on what single action {name} should now take,",
-                                "based on the instructions and the information about {name} structured in the CAPITALIZED sections above these instructions. "
-                                "Choose the action suggested in [Suggested Action], unless doing so goes against the following detailed instructions:\n",
-                            ]
-                        ).format(name=self.get_entity().name)
-                        + call_to_action
-                        + actions_conducted
-                    )
-                    output = self.get_entity().name + " "
+                    actions_conducted = "\nRecently taken actions:\n" + numbered_output + "\n"
+                    # cot_call = (
+                    #     " ".join(
+                    #         [
+                    #             "Think step-by-step on what single action {name} should now take,",
+                    #             "based on the instructions and the information about {name} structured in the CAPITALIZED sections above these instructions. "
+                    #             "Choose the action suggested in [Suggested Action], unless doing so goes against the following detailed instructions:\n",
+                    #         ]
+                    #     ).format(name=self.get_entity().name)
+                    #     + call_to_action
+                    #     # + actions_conducted
+                    # )
+                    output = prefix
                     output += prompt.open_question(
-                        cot_call,  # call_to_action,
+                        call_to_action + actions_conducted,  # cot_call,  #
                         max_tokens=500,
                         answer_prefix=output,
+                        answer_label="Answer",
                         # This terminator protects against the model providing extra context
                         # after the end of a directly spoken response, since it normally
                         # puts a space after a quotation mark only in these cases.
-                        terminators=('" ', "\n"),
-                        question_label="Action Decision",
+                        terminators=(),  #'" ', "\n"),
+                        question_label="",  # Action Decision",
                     )
                     thoughts = "Current thought on action to take: " + output + "\n"
                     prompt.statement(thoughts)
                 else:
-                    output = self.get_entity().name + " "
+                    output = prefix
                     output += prompt.open_question(
                         call_to_action,
                         max_tokens=2200,
                         answer_prefix=output,
+                        answer_label="Answer",
                         # This terminator protects against the model providing extra context
                         # after the end of a directly spoken response, since it normally
                         # puts a space after a quotation mark only in these cases.
-                        terminators=('" ', "\n"),
+                        terminators=(),  #'" ', "\n"),
                         question_label="Exercise",
                     )
             else:
                 media_str, call_to_action = call_to_action.split("Context", 1)
                 call_to_action = "Context" + call_to_action
                 media_list = ast.literal_eval(media_str.strip())
-                output = self.get_entity().name + " "
+                output = prefix
                 output += self._model.sample_text(
                     prompt=context + "\n" + call_to_action,  # order correct?
                     media=media_list,
@@ -167,7 +170,6 @@ class AllActComponent(entity_component.ActingComponent):
             self._log(output, prompt)
             return output
         if action_spec.output_type == entity_lib.OutputType.FLOAT:
-            prefix = self.get_entity().name + " "
             sampled_text = prompt.open_question(
                 call_to_action,
                 max_tokens=2200,
@@ -395,56 +397,24 @@ class BaseAgentBuilder(ABC):
         agent_name = config.name
         assert agent_name == input_data["agent_name"], "agent names not same!"
         goal = config.goal
+        post_style = input_data["style"]
+        cfg = ConfigStore.get_config()
 
         raw_memory = legacy_associative_memory.AssociativeMemoryBank(memory)
         measurements = measurements_lib.Measurements()
 
-        # labels of base components and common settings
-        names = [
-            [
-                "Instructions",
-                "ROLE-PLAYING INSTRUCTIONS\n",
-            ],  # cls._get_component_name()=Instructions
-            ["OverarchingGoal", "OVERARCHING GOAL"],  # cls._get_component_name()=Constant
-            ["Observation", "OBSERVATIONS\n"],  # cls._get_component_name()=Observation
-            [
-                "ObservationSummary",
-                "SUMMARY OF RECENT OBSERVATIONS\n",
-            ],  # cls._get_component_name()=ObservationSummary
-            [
-                "TimeDisplay",
-                "CURRENT DATE AND TIME\n",
-            ],  #  cls._get_component_name()=ReportFunction
-            [
-                "AllSimilarMemories",
-                "RECALLED MEMORIES AND OBSERVATIONS\n",
-            ],  # cls._get_component_name()=AllSimilarMemories,
-            [
-                "IdentityWithoutPreAct",
-                "IDENTITY CHARACTERISTICS\n" + config.context,
-            ],  # cls._get_component_name()=IdentityWithoutPreAct, # does not provide pre-act context
-            [
-                "SelfPerception",
-                f"Question: What kind of person is {agent_name}?\nAnswer",
-            ],  # cls._get_component_name()=SelfPerception
-            ["ActionSuggester", "[Action Suggestion]"],  # cls._get_component_name()=ActionSuggester
-        ]
-        pre_act_keys_dict = {name: pre_act_key for name, pre_act_key in names}
-        component_order = [item[0] for item in names]
+        names, pre_act_key_dict, idx_order = [], {}, []
+        for component in cfg.agents.base_agent.components:
+            names.append(component.name)
+            pre_act_key_dict[component.name] = component.pre_act_key
+            idx_order.append(component.seq_index)
+        component_order = [names[idx] for idx in idx_order]
 
-        dependencies = {
-            "AllSimilarMemories": {
-                "ObservationSummary": pre_act_keys_dict["ObservationSummary"],
-                "TimeDisplay": "current date and time is",
-            },
-            "SelfPerception": {
-                "IdentityWithoutPreAct": "Persona"  # why not pre_Act_key here?
-            },
-        }
+        dependencies = cfg.agents.base_agent.dependencies
 
         # Instantiate components
         z = {}
-        for name, pre_act_key in pre_act_keys_dict.items():
+        for name, pre_act_key in pre_act_key_dict.items():
             settings = {}
 
             # add generic options
@@ -454,7 +424,14 @@ class BaseAgentBuilder(ABC):
             # Add component-specific settings and assign constructor
             if name == "Instructions":
                 settings["agent_name"] = agent_name
-                component_constructor = ext_components.instructions.Instructions
+                settings["state"] = cfg.sim.roleplaying_instructions
+                settings["state"] = settings["state"].format(
+                    name=agent_name
+                )  # component_constructor = ext_components.instructions.Instructions
+                Instructions = importlib.import_module(
+                    "sim.agent_utils.components.instructions"
+                ).Instructions
+                component_constructor = Instructions
             elif name == "OverarchingGoal":
                 settings["state"] = goal
                 component_constructor = ext_components.constant.Constant
@@ -485,7 +462,11 @@ class BaseAgentBuilder(ABC):
             elif name == "ActionSuggester":
                 settings["action_probabilities"] = cls.get_suggested_action_probabilities()
                 component_constructor = ActionSuggester
-
+            elif name == "PostingStyle":
+                settings["state"] = post_style
+                component_constructor = ext_components.constant.Constant
+            else:
+                exit("no matching component class found")
             # check for and add dependencies
             if name in dependencies:
                 settings["components"] = dependencies[name]

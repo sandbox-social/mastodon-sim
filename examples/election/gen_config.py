@@ -7,7 +7,7 @@ import json
 EPISODE_CALL_TO_ACTION = """
 {name} has decided to open the Storhampton.social Mastodon app to engage with other Storhampton residents on the platform for the next {timedelta}, starting by checking their home timeline.
 
-Describe the motivation that will drive {name}'s attention during this activity and the actions they are likely to take on the app during this period as a result.
+Describe the motivation that will drive {name}'s attention during this activity and the kinds of actions they are likely to take on the app during this period as a result.
 For example: Are they looking to be entertained? Are they curious about what others are posting?
 Do they simply want to post something that's been on their mind?
 
@@ -31,110 +31,46 @@ Here's an example description for a hypothetical Storhampton resident, specifica
 
 "Sarah has been anxious about the election and decides she wants to go on Storhampton.social to make a post about issues she wants the community to think about as they vote.
 In particular, she will post the following toot reflecting what she has observed in light of her interests:
-'Has anyone heard anything from the candidates about teaching technology to kids in our community?
-I just think this is such an important issue for us. The next generation of Storhamptons needs employable skills!
-Curious what others think. 🤔
-#StorhamptonElection #STEM'".
+'Has anyone heard anything from the candidates about teaching technology to kids in our community? I just think this is such an important issue for us. The next generation of Storhamptons needs employable skills!
+Curious what others think. 🤔 #StorhamptonElection #STEM.'
+After posting Sarah will view her timeline, liking and boosting posts, and even replying to posts that engage her interests in the election and her passions".
 """
-# """
-# # EMILY CHEN ROLE-PLAYING SIMULATION
 
-# ## CHARACTER PROFILE
-# - **Name:** Emily Chen
-# - **Occupation:** Educator
-# - **Core Values:** Social equity, community engagement, educational advancement
-# - **Personality Traits:** Enthusiastic, dedicated, optimistic, resilient
-# - **Current Goal:** Have a good day and vote in the upcoming election
-
-# ## POLITICAL CONTEXT
-# - **Election Information:**
-#   - Bill Fredrickson: Campaigns on providing tax breaks to local industry and creating jobs
-#   - Bradley Carter: Campaigns on increasing environmental regulation and expanding social programs
-# - **Emily's Political Leanings:** Values social equity and educational initiatives; shows interest in both candidates' positions that align with community development
-
-# ## CURRENT SITUATION
-# - **Date and Time:** March 22, 2025, 11:30-12:00
-# - **Platform:** Storhampton.social (Mastodon)
-# - **Recent Activity:** Emily has been engaging with posts about the upcoming election and educational initiatives
-# - **Last Action:** Replied to Jason's post (ID: 114204770553395080) expressing enthusiasm about the election
-
-# ## TIMELINE DATA
-# ```
-# [Timeline retrieved at 11:00:00]
-# User: Chris (@user0017) Content: I completely agree with your thoughts on Bill Fredrickson's campaign! It's inspiring to see our community prioritize growth and collaboration. Toot ID: 114204813429886778
-# User: Emily (@user0013) Content: I really love your enthusiasm about the upcoming election! Let's work together to encourage our community to participate and make their voices heard. Toot ID: 114204805208234348
-# User: Emily (@user0013) Content: I completely agree with your thoughts on supporting candidates who prioritize community growth and safety! Let's make a difference together! Toot ID: 114204804055117658
-# User: Jessica (@user0018) Content: I'm so excited about the upcoming election! Let's all support Bill Fredrickson's campaign for community safety and economic growth! Toot ID: 114204802450911925
-# User: Bill (@user0019) Content: I'm excited about the upcoming election too, Jason! Let's work together to make our voices heard and support our community's future! Toot ID: 114204781379477665
-# User: Jason (@user0009) Content: I'm excited about the upcoming election too! Let's work together to make our voices heard and support Bill Fredrickson's plans! Toot ID: 114204770553395080
-# User: Emily (@user0013) Content: I completely agree with your thoughts on supporting candidates who prioritize community growth and safety. Let's make our voices heard! Toot ID: 114204770482429547
-# User: Jessica (@user0018) Content: I'm excited about the upcoming election and eager to encourage my fellow residents to engage in community safety and economic growth! Let's support Bill Fredrickson together! Toot ID: 114204758976627764
-# User: Jessica (@user0018) Content: I'm so excited about the upcoming election! Let's all participate and make our voices heard in support of Bill Fredrickson and our community. Toot ID: 114204756711446099
-# User: Jessica (@user0018) Content: I'm excited to support Bill Fredrickson's campaign and encourage everyone to engage in our community's future! Let's make our voices heard in the upcoming election! Toot ID: 114204755806087925
-# ```
-
-# ## NARRATIVE PERSPECTIVE
-# Use third-person limited perspective when describing Emily's thoughts and actions.
-
-# ## AVAILABLE ACTIONS
-# 1. Post a new toot
-# 2. Reply to a toot (requires Toot ID)
-# 3. Boost a toot (requires Toot ID + content)
-# 4. Like a toot (requires Toot ID)
-
-# ## ACTION SELECTION INSTRUCTIONS
-# Based on Emily Chen's profile, current situation, and recent timeline:
-
-# 1. Think through Emily's current motivation
-# 2. Consider which action would be most authentic to her character
-# 3. Ensure the action is not a repeat of her previous actions:
-#    - Already replied to toot ID: 114204770553395080
-#    - Already expressed enthusiasm about the election in multiple posts
-# 4. Provide a single specific action with:
-#    - Clear motivation explanation
-#    - Specific action details (which action type, which toot ID if applicable)
-#    - Content of post/reply that reflects Emily's voice and values
-
-# ## RESPONSE FORMAT
-# ```
-# MOTIVATION: [Briefly explain why Emily would take this action]
-# ACTION: [Specify one of the four action types]
-# TARGET: [Include Toot ID if replying/boosting/liking]
-# CONTENT: [For posts or replies, include the exact text Emily would write]
-# ```
-# """
-
-# action instructions
 CALL_TO_ACTION = """
-## Available Actions
-1. Post a toot
-2. Reply to a toot (requires Toot ID)
-3. Boost a toot (requires Toot ID + content)
-4. Like a toot (requires Toot ID)
+## AVAILABLE ACTIONS
+1. POST - Create a new toot
+2. REPLY - Respond to existing toot (needs ID)
+3. BOOST - Share someone's toot (needs ID)
+4. LIKE - Like a toot (needs ID)
 
-## Core Rules
-- Never repeat the exact same action
-- Provide specific details
-- Use only already mentioned details/do not make them up (valid examples: Toot IDs obtained from the read timeline; users mentioned in observations)
-- Follow the suggested action unless responding to engagement by other users
-- Base actions on character's values and goals
-- Use direct replies for responses, not new posts
+## INSTRUCTIONS
+Determine what ONE action {name} would take next based on:
+- Their character and values via self-perception and goal descriptions
+- The current context and timeline
+- Not repeating recent actions
+If text-based, the text must reflect their posting style descriptions.
 
-## Primary Question and Instructions
-Based on {name}'s goal, the content of the current plan for phone usage, tagged as [Planned Actions for upcoming Phone Usage], as well as list of actions already taken in this episode, what SINGLE specific action would they take now on the storhampton.social Mastodon app?
+## OUTPUT FORMAT
+STEP 1: [Analyze {name}'s motivation based on their character]
+STEP 2: [Consider which posts/actions align with {name}'s values]
+STEP 3: [Determine the single most authentic action]
 
-Think through:
-1. Current motivation and context
-2. Available (i.e. not repeated) actions and their impact
-3. Alignment with character values
-4. Specific details needed (IDs, content)
+FINAL DECISION:
+ACTION TYPE: [POST/REPLY/BOOST/LIKE]
+TARGET ID: [Include toot ID if applicable]
+CONTENT: [For posts/replies, exact text {name} would write]
+REASONING: [Brief explanation of why this action fits {name}'s character]
 
-Provide your response with:
-1. Motivation/explanation
-2. Specific action details
-3. Required context/content
+## EXAMPLE OUTPUT
+STEP 1: {name} is motivated by her interest in educational initiatives and community engagement around the election.
+STEP 2: Chris's post about community priorities resonates with {name}'s values. She hasn't interacted with this post yet.
+STEP 3: Responding to Chris would allow {name} to engage meaningfully about community values.
 
-List of actions already taken in this episode (tagged as [Action done on phone]) so as not to repeat:
+FINAL DECISION:
+ACTION TYPE: REPLY
+TARGET ID: 114204813429886778
+CONTENT: "I appreciate your focus on community priorities, Chris! As an educator, I believe our growth depends on strong educational foundations alongside economic development."
+REASONING: This reply allows Emily to acknowledge community values while highlighting her educational perspective, which is authentic to her character.
 """
 
 SETTING_BACKGROUND = [
@@ -308,6 +244,69 @@ def generate_output_configs(cfg):
     agents["inputs"] = {}
     agents["inputs"]["persona_file"] = "reddit_agents.json"
     agents["inputs"]["news_file"] = "v1_news_no_bias"
+    agents["base_agent"] = {}
+    agents["base_agent"]["components"] = [
+        {
+            "name": "Instructions",
+            "pre_act_key": "## ROLE-PLAYING INSTRUCTIONS\n",
+            # "seq_index": 0
+        },  # cls._get_component_name()=Instructions
+        {
+            "name": "OverarchingGoal",
+            "pre_act_key": "## OVERARCHING GOAL\n",
+            # "seq_index": 1
+        },  # cls._get_component_name()=Constant
+        {
+            "name": "Observation",
+            "pre_act_key": "## OBSERVATIONS\n",
+            "seq_index": 2,
+        },  # cls._get_component_name()=Observation
+        # {
+        #     "name": "ObservationSummary",
+        #     "pre_act_key": "## SUMMARY OF RECENT OBSERVATIONS\n",
+        #     "seq_index": 3
+        # },# cls._get_component_name()=ObservationSummary
+        {
+            "name": "TimeDisplay",
+            "pre_act_key": "## CURRENT DATE AND TIME\n",
+            # "seq_index": 4
+        },  #  cls._get_component_name()=ReportFunction
+        # {
+        #     "name": "AllSimilarMemories",
+        #     "pre_act_key": "## RECALLED MEMORIES AND OBSERVATIONS\n",
+        #     "seq_index": 5
+        # },# cls._get_component_name()=AllSimilarMemories,
+        {
+            "name": "IdentityWithoutPreAct",
+            "pre_act_key": "## IDENTITY CHARACTERISTICS\n",
+            # "seq_index": 6
+        },  # cls._get_component_name()=IdentityWithoutPreAct, # does not provide pre-act context
+        {
+            "name": "SelfPerception",
+            "pre_act_key": "## SELF-PERCEPTION\n",
+            # "seq_index": 7
+        },  # cls._get_component_name()=SelfPerception
+        {
+            "name": "ActionSuggester",
+            "pre_act_key": "## ACTION SUGGESTION\n",
+            # "seq_index": 8
+        },  # cls._get_component_name()=ActionSuggester
+        {
+            "name": "PostingStyle",
+            "pre_act_key": "## POSTING STYLE\n",
+            # "seq_index": 1
+        },  # cls._get_component_name()=Constant
+    ]
+    for it, comp_dict in enumerate(agents["base_agent"]["components"]):
+        comp_dict["seq_index"] = it
+
+    agents["base_agent"]["dependencies"] = {
+        "AllSimilarMemories": {
+            "ObservationSummary": "SUMMARY OF RECENT OBSERVATIONS",
+            "TimeDisplay": "Current date and time is",
+        },
+        "SelfPerception": {"IdentityWithoutPreAct": "IDENTITY CHARACTERISTICS"},
+    }
     agents["directory"] = []
     # Bring agents together for base setting by role
     roles = []
@@ -327,6 +326,7 @@ def generate_output_configs(cfg):
         agent["role_dict"] = {"name": "candidate", "module_path": "agent_lib.candidate"}
         agent["goal"] = CANDIDATE_INFO[partisan_type]["name"] + "'s goal is " + candidates_goal
         agent["context"] = ""
+        agent["style"] = ""
         agent["seed_toot"] = ""
         candidate_configs.append(agent)
     # ----------------
@@ -360,11 +360,12 @@ def generate_output_configs(cfg):
         agent = {}
         agent["name"] = row["Name"]
         agent["gender"] = row["Sex"].lower()
-        agent["context"] = row["context"]
+        agent["context"] = row["Context"]
+        agent["style"] = row["Style"]
         agent["party"] = ""  # row.get("Political_Identity", "")
         agent["seed_toot"] = ""
         agent["role_dict"] = {"name": "voter", "module_path": "agent_lib.voter"}
-        agent["goal"] = "Their goal is have a good day and vote in the election."
+        agent["goal"] = row["Context"] + " Their goal is have a good day and vote in the election."
         voter_configs.append(agent)
 
     # add custom setting-specific agent features
@@ -484,7 +485,7 @@ def generate_output_configs(cfg):
             "role_parameters": {
                 "active_rates_per_episode": {
                     "candidate": 0.7,
-                    "voter": 0.5,
+                    "voter": 0.8,
                     "exogenous": 1,
                 },
                 "initial_follow_prob": get_followership_connection_stats(roles),

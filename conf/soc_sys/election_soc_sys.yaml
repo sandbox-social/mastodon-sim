@@ -1,89 +1,134 @@
 call_to_action: '
-  ## Available Actions
-  1. Post a toot
-  2. Reply to a toot (requires Toot ID)
-  3. Boost a toot (requires Toot ID + content)
-  4. Like a toot (requires Toot ID)
+
+  ## AVAILABLE ACTIONS
+
+  1. POST - Create a new toot
+
+  2. REPLY - Respond to existing toot (needs ID)
+
+  3. BOOST - Share someone''s toot (needs ID)
+
+  4. LIKE - Like a toot (needs ID)
 
 
-  ## Core Rules
-  - Never repeat recent actions
-  - Provide specific details (app, Toot IDs)
-  - Follow suggested action unless engagement suggests otherwise
-  - Base decisions on character''s values and goals
-  - Use direct replies for responses, not new posts
+  ## INSTRUCTIONS
 
-  ## Primary Question and Instructions
-  Based on {name}''s goal and the content of the current plan for phone usage, tagged
-  as [Planned Actions for upcoming Phone Usage], what SINGLE specific action would
-  they take now on the storhampton.social Mastodon app?
+  Determine what ONE action {name} would take next based on:
 
-  Think through:
-  1. Current motivation and context
-  2. Available (not repeat) actions and their impact
-  3. Alignment with character values
-  4. Specific details needed (IDs, content)
+  - Their character and values via self-perception and goal descriptions
 
-  Provide your response with:
-  1. Motivation explanation
-  2. Specific action details
-  3. Required context/content
+  - The current context and timeline
 
-  List of previous actions (tagged as [Action done on phone]) so as not to repeat:
+  - Not repeating recent actions
+
+  If text-based, the text must reflect their posting style descriptions.
+
+
+  ## OUTPUT FORMAT
+
+  STEP 1: [Analyze {name}''s motivation based on their character]
+
+  STEP 2: [Consider which posts/actions align with {name}''s values]
+
+  STEP 3: [Determine the single most authentic action]
+
+
+  FINAL DECISION:
+
+  ACTION TYPE: [POST/REPLY/BOOST/LIKE]
+
+  TARGET ID: [Include toot ID if applicable]
+
+  CONTENT: [For posts/replies, exact text {name} would write]
+
+  REASONING: [Brief explanation of why this action fits {name}''s character]
+
+
+  ## EXAMPLE OUTPUT
+
+  STEP 1: {name} is motivated by her interest in educational initiatives and community
+  engagement around the election.
+
+  STEP 2: Chris''s post about community priorities resonates with {name}''s values.
+  She hasn''t interacted with this post yet.
+
+  STEP 3: Responding to Chris would allow {name} to engage meaningfully about community
+  values.
+
+
+  FINAL DECISION:
+
+  ACTION TYPE: REPLY
+
+  TARGET ID: 114204813429886778
+
+  CONTENT: "I appreciate your focus on community priorities, Chris! As an educator,
+  I believe our growth depends on strong educational foundations alongside economic
+  development."
+
+  REASONING: This reply allows Emily to acknowledge community values while highlighting
+  her educational perspective, which is authentic to her character.
+
   '
-episode_call_to_action: "\n{name} will open the Storhampton.social Mastodon app to\
-  \ engage with other Storhampton residents on the platform for the next {timedelta},\
-  \ starting by checking their home timeline.\n\nDescribe the kinds of social media\
-  \ engagement {name} receives and how they engage with the content of other users\
-  \ within this time period, in particular what social media actions they take.\n\
-  Describe these platform-related activities as plans and use future tense or planning\
-  \ language.\nBe specific, creative, and detailed in your description.\nAlways include\
-  \ direct quotes for any planned communication or content created by {name}, using\
-  \ emojis where it fits {name}'s communication style.\nIn describing the content\
-  \ of these actions, it is critical to pay close attention to known information about\
-  \ {name}'s personality,\npreferences, habits, plans and background.\nThe set of\
-  \ specific actions mentioned should be logically consistent with each other and\
-  \ {name}'s memories and should plausibly fit within the {timedelta}.\nOnly reference\
-  \ specific posts or comments from others if they have been previously established\
-  \ or observed. Do not invent content of other users.\n\nHere are the kinds of actions\
-  \ to include, and what they accomplish:\n- Posting a toot: {name} wants to tell\
-  \ others something and so posts a toot.\n- Replying to a Mastodon post: {name} is\
-  \ engaged by reading a post with a given Toot ID and is compelled to reply.\n- Boosting\
-  \ a Mastodon post: {name} sees a toot that they want to share with their own followers\
-  \ so they boost it. (Return Toot ID and the exact contents of the toot to be boosted.)\n\
-  - Liking a Mastodon post: {name} is positively impressioned by post they have recently\
-  \ read with a given Toot ID so they like the post. (Return toot ID of the post you\
-  \ want to like)\n\nHere's an example description for a hypothetical Storhampton\
-  \ resident, specifically a programmer named Sarah:\n\n\"Sarah will check her home\
-  \ timeline on Storhampton.social and plans to engage posts about the upcoming election.\n\
-  Then she will post the following toot reflecting what she has observed in light\
-  \ of her interests:\n'Has anyone heard anything from the candidates about teaching\
-  \ technology to kids in our community?\nI just think this is such an important issue\
-  \ for us. The next generation of Storhamptons needs employable skills!\nCurious\
-  \ what others think. \U0001F914\n#StorhamptonElection #STEM'\".\n"
+episode_call_to_action: "\n{name} has decided to open the Storhampton.social Mastodon\
+  \ app to engage with other Storhampton residents on the platform for the next {timedelta},\
+  \ starting by checking their home timeline.\n\nDescribe the motivation that will\
+  \ drive {name}'s attention during this activity and the kinds of actions they are\
+  \ likely to take on the app during this period as a result.\nFor example: Are they\
+  \ looking to be entertained? Are they curious about what others are posting?\nDo\
+  \ they simply want to post something that's been on their mind?\n\nUse {name}'s\
+  \ memories and observations and in particular, the kinds of social media engagement\
+  \ {name} has received recently and how they have engaged with the content of other\
+  \ users previously.\n\nDescribe these platform-related activities as plans and use\
+  \ future tense or planning language.\nBe specific, creative, and detailed in your\
+  \ description.\nAlways include direct quotes for any planned communication or content\
+  \ created by {name}, using emojis where it fits {name}'s communication style.\n\
+  In describing the content of these actions, it is critical to pay close attention\
+  \ to known information about {name}'s personality,\npreferences, habits, plans and\
+  \ background.\nThe set of specific actions mentioned should be logically consistent\
+  \ with each other and {name}'s memories and should plausibly fit within the {timedelta}.\n\
+  Only reference specific posts or comments from others if they have been previously\
+  \ established or observed. Do not invent content of other users.\n\nHere are the\
+  \ kinds of actions to include, and what they accomplish:\n- Posting a toot: {name}\
+  \ wants to tell others something and so posts a toot.\n- Replying to a Mastodon\
+  \ post: {name} is engaged by reading a post with a given Toot ID and is compelled\
+  \ to reply.\n- Boosting a Mastodon post: {name} sees a toot that they want to share\
+  \ with their own followers so they boost it. (Return Toot ID and the exact contents\
+  \ of the toot to be boosted.)\n- Liking a Mastodon post: {name} is positively impressioned\
+  \ by post they have recently read with a given Toot ID so they like the post. (Return\
+  \ toot ID of the post you want to like)\n\nHere's an example description for a hypothetical\
+  \ Storhampton resident, specifically a computer programmer named Sarah:\n\n\"Sarah\
+  \ has been anxious about the election and decides she wants to go on Storhampton.social\
+  \ to make a post about issues she wants the community to think about as they vote.\n\
+  In particular, she will post the following toot reflecting what she has observed\
+  \ in light of her interests:\n'Has anyone heard anything from the candidates about\
+  \ teaching technology to kids in our community? I just think this is such an important\
+  \ issue for us. The next generation of Storhamptons needs employable skills!\nCurious\
+  \ what others think. \U0001F914 #StorhamptonElection #STEM.'\nAfter posting Sarah\
+  \ will view her timeline, liking and boosting posts, and even replying to posts\
+  \ that engage her interests in the election and her passions\".\n"
 exp_name: independent
 gamemaster_memories:
-- Jessica Thompson is at their private home.
-- Michael Robertson is at their private home.
-- Sam Jenkins is at their private home.
-- Laura Mitchell is at their private home.
-- Rahul Desai is at their private home.
-- Sam Robertson is at their private home.
+- Michael Donovan is at their private home.
+- Jessica Lopez is at their private home.
+- David Kim is at their private home.
+- Rachel Thompson is at their private home.
+- Arjun Patel is at their private home.
+- Alex Carter is at their private home.
 - Emily Chen is at their private home.
-- Michael Harris is at their private home.
-- Jason Miller is at their private home.
-- Lisa Collins is at their private home.
-- Nathan Torres is at their private home.
-- Zachary Patel is at their private home.
-- Emily Thompson is at their private home.
-- Rachel Kim is at their private home.
-- Alex Thompson is at their private home.
-- Carlos Mendes is at their private home.
-- Chris Anderson is at their private home.
-- Jessica Rodriguez is at their private home.
+- Michael Thompson is at their private home.
+- David Nguyen is at their private home.
+- Lisa Martinez is at their private home.
+- Nathan Ramirez is at their private home.
+- Zoe Lin is at their private home.
+- Elijah Martin is at their private home.
+- Sophia Johnson is at their private home.
+- Eric Thompson is at their private home.
+- Luciana Santos is at their private home.
+- Tom Richards is at their private home.
+- Javier Gonzalez is at their private home.
 - Bill Fredrickson is at their private home.
 - Bradley Carter is at their private home.
-- Storhampton Gazette is at their private home.
 - The workday begins for the Storhampton Gazette
 max_inepisode_tries: 20
 setting_info:
@@ -108,7 +153,7 @@ setting_info:
       active_rates_per_episode:
         candidate: 0.7
         exogenous: 1
-        voter: 0.5
+        voter: 0.8
       initial_follow_prob:
         candidate:
           candidate: 0.4
