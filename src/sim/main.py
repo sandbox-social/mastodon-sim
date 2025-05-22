@@ -15,6 +15,8 @@ from concordia import __file__ as concordia_location
 from dotenv import load_dotenv
 from omegaconf import DictConfig, OmegaConf, open_dict
 
+from sim.agent_utils.base_agent import save_agent_to_json
+
 print(f"importing Concordia from: {concordia_location}")
 warnings.filterwarnings(action="ignore", category=FutureWarning, module="concordia")
 
@@ -81,7 +83,7 @@ def run_sim(
     model,
     embedder,
     output_post_analysis=False,
-    save_checkpoints=False,
+    save_checkpoints=True,
     load_from_checkpoint_path="",
 ):
     cfg = ConfigStore.get_config()
@@ -128,7 +130,9 @@ def run_sim(
         clock,
     )
 
-    action_event_logger = EventLogger("action", cfg.sim.output_rootname + "_events.jsonl")
+    action_event_logger = EventLogger(
+        "action", os.path.join(cfg.sim.output_rootname, "action_events.jsonl")
+    )
     action_event_logger.episode_idx = -1
 
     mastodon_apps, phones, active_rates = set_up_mastodon_app_usage(
@@ -185,7 +189,9 @@ def run_sim(
     )
 
     # initialize
-    probe_event_logger = EventLogger("probe", cfg.sim.output_rootname + "_events.jsonl")
+    probe_event_logger = EventLogger(
+        "probe", os.path.join(cfg.sim.output_rootname, "probe_events.jsonl")
+    )
 
     if load_from_checkpoint_path:
         (agents, clock) = rebuild_from_saved_checkpoint(
@@ -222,29 +228,30 @@ def run_sim(
 
             end_timex = time.time()
             with open(
-                cfg.sim.output_rootname + "_episode_runtime_logger.txt",
+                os.path.join(cfg.sim.output_rootname, "episode_runtime_logger.txt"),
                 "a",
             ) as f:
                 f.write(
-                    f"Episode with {len(active_agent_names)} finished - took {end_timex - start_timex}\n"
+                    f"Episode with {len(active_agent_names)} finished - took {end_timex - start_timex}\\n"
                 )
 
         # save chaeckpoints
         if save_checkpoints:
+            print("SAVING CHECKPOINTS")
             for agent_input, agent in zip(agent_data, agents, strict=False):
+                if roles[agent._agent_name] == "exogenous":
+                    continue
+                print(
+                    f"Debug: Agent {agent._agent_name} type before saving: {type(agent)}"
+                )  # DEBUG LINE
                 agent_dir = os.path.join(
-                    cfg.sim.output_rootname + "agent_checkpoints", agent._agent_name
+                    cfg.sim.output_rootname, "agent_checkpoints", f"Episode_{i}"
                 )
                 os.makedirs(agent_dir, exist_ok=True)
-                file_path = os.path.join(agent_dir, f"Episode_{i}.json")
-                module_path = (
-                    "sim_setting." + agent_input["role_dict"]["module_path"]
-                    if agent_input["role_dict"]["name"] != "exogeneous"
-                    else "agent_utils.exogenous_agent"
-                )
-                json_data = importlib.import_module(module_path).save_agent_to_json(agent)
+                file_path = os.path.join(agent_dir, f"{agent._agent_name}.json")
+                json_data = save_agent_to_json(agent)
                 with open(file_path, "w") as file:
-                    file.write(json.dumps(json_data, indent=4))
+                    file.write(json_data)
 
     if output_post_analysis:
         post_analysis(env, model, agents, roles, local_post_analyze_data, cfg.sim.output_rootname)
@@ -261,11 +268,12 @@ def configure_logging(logger):
 def main(cfg: DictConfig):
     OmegaConf.set_struct(cfg, True)
     with open_dict(cfg):
-        cfg.sim.output_rootname = (
-            hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-            + "/"
-            + hydra.core.hydra_config.HydraConfig.get().job.name
+        # Construct output_rootname using os.path.join for platform independence
+        cfg.sim.output_rootname = os.path.join(
+            hydra.core.hydra_config.HydraConfig.get().runtime.output_dir,
+            hydra.core.hydra_config.HydraConfig.get().job.name,
         )
+    os.makedirs(cfg.sim.output_rootname, exist_ok=True)
     # make cfg globally accessible through ConfigStore import
     ConfigStore.set_config(cfg)
 
@@ -289,7 +297,7 @@ def main(cfg: DictConfig):
 
     # load language models
     model = select_large_language_model(
-        cfg.sim.model, cfg.sim.output_rootname + "_prompts_and_responses.jsonl", True
+        cfg.sim.model, os.path.join(cfg.sim.output_rootname, "prompts_and_responses.jsonl"), True
     )
     embedder = get_sentance_encoder(cfg.sim.sentence_encoder)
 

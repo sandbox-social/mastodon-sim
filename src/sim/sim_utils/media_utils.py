@@ -118,6 +118,7 @@ class GptLanguageModel(language_model.LanguageModel):
                     temperature=temperature,
                     max_tokens=max_tokens,
                     timeout=timeout,
+                    seed=0,
                     **({"stop": stop_param} if stop_param is not None else {}),
                 )
                 has_result = True

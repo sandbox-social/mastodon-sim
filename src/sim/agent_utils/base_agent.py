@@ -504,6 +504,7 @@ class BaseAgentBuilder(ABC):
             act_component=act_component,
             context_components=z,
             component_logging=measurements,
+            config=config,
         )
 
         return agent
@@ -551,21 +552,16 @@ def save_agent_to_json(
 
 def rebuild_from_json(
     json_data: str,
-    config: formative_memories.AgentConfig,
     model: language_model.LanguageModel,
-    memory: associative_memory.AssociativeMemory,
-    clock: game_clock.MultiIntervalClock,
     embedder: Callable[[str], np.ndarray],
-    update_time_interval: datetime.timedelta | None = None,
+    clock: game_clock.MultiIntervalClock,
     input_data: dict[str, Any] = {},
-    memory_importance: Callable[[str], float] | None = None,
 ) -> entity_agent_with_logging.EntityAgentWithLogging:
     """Rebuilds an agent from JSON data."""
     data = json.loads(json_data)
 
     new_agent_memory = associative_memory.AssociativeMemory(
         sentence_embedder=embedder,
-        importance=memory_importance,
         clock=clock.now,
         clock_step_size=clock.get_step_size(),
     )
@@ -574,20 +570,16 @@ def rebuild_from_json(
         raise ValueError("The JSON data does not contain the agent config.")
     agent_config = formative_memories.AgentConfig.from_dict(data.pop("agent_config"))
 
-    # agent = build_agent(
-    #     config=agent_config,
-    #     model=model,
-    #     memory=new_agent_memory,
-    #     clock=clock,
-    # )
-    measurements = measurements_lib.Measurements()
-
-    agent = entity_agent_with_logging.EntityAgentWithLogging(
-        agent_name=config.name,
-        component_logging=measurements,
+    agent = BaseAgentBuilder.build(
+        config=agent_config,
+        model=model,
+        memory=new_agent_memory,
+        clock=clock,
+        input_data=input_data,
     )
-
+    print(f"Rebuilding agent {agent.get_name()} from JSON data")
     for component_name in agent.get_all_context_components():
+        print(component_name, data[component_name])
         agent.get_component(component_name).set_state(data.pop(component_name))
 
     agent.get_act_component().set_state(data.pop("act_component"))
